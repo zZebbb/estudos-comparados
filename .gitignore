@@ -1,2 +1,5 @@
 .DS_Store
 *.log
+
+# Fotos reais das ações ficam fora do git até a confirmação da autorização de imagem.
+fotos/
