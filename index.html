@@ -148,6 +148,9 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 .calm *{transition:none!important;animation:none!important}
 .calm html{scroll-behavior:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+.gcursor{position:fixed;left:0;top:0;z-index:70;pointer-events:none;border-radius:50%;background:#fff;border:0 solid rgba(255,255,255,.75);opacity:0;transition:opacity .2s;will-change:transform,width,height}
+.gcursor.on{opacity:1}
+@media (pointer:fine){html.gcur,html.gcur body,html.gcur .step{cursor:none}}
 </style>
 
 <div id="loader" role="status"><b>Estudos Comparados</b><div class="bar2"><i id="lbar"></i></div><span class="eyebrow">carregando o globo</span></div>
@@ -170,7 +173,6 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 <main id="story"></main>
 <footer>Estudos Comparados · Laboratório ECoS, Universidade de Brasília. Protótipo: números, trechos e textos dos países são exemplos fictícios. Antes dos artigos, o site só mostra dados descritivos e anonimizados.</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ================= DADOS DE EXEMPLO (no site real: arquivo gerado das planilhas) ================= */
 const DIARIOS={"sao-tome":"https://claude.ai/artifact/MqXNFjqJ4S7JeQNFg65YNY","peru":"https://claude.ai/artifact/2KsqbvwxQxwGgc6wRMsQJf"};
@@ -309,109 +311,127 @@ function activate(i){if(i===current)return;current=i;const s=STEPS[i];
 const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)activate(+e.target.dataset.i)})},{rootMargin:"-30% 0px -30% 0px"});
 document.querySelectorAll(".step").forEach(el=>io.observe(el));
 
-/* ================= GLOBO 3D ================= */
+/* ================= GLOBO DE PONTOS ================= */
 let G=null;
 const lbar=document.getElementById("lbar"),loader=document.getElementById("loader");
 function done(){lbar.style.width="100%";setTimeout(()=>loader.classList.add("done"),250);if(current<0)activate(0);else if(G)G.go(STEPS[current].view,true)}
 lbar.style.width="30%";
-if(!window.THREE||!(()=>{try{const c=document.createElement("canvas");return !!(c.getContext("webgl")||c.getContext("experimental-webgl"))}catch(e){return false}})()){
-  document.documentElement.classList.add("nogl");done();
-}else{
-  fetch("data/globo.json").then(r=>r.json()).then(geo=>{lbar.style.width="70%";G=makeGlobe(geo);done()}).catch(()=>{document.documentElement.classList.add("nogl");done()});
-}
+fetch("data/dots.json").then(r=>r.json()).then(d=>{lbar.style.width="70%";G=makeGlobe(d);done()}).catch(()=>{document.documentElement.classList.add("nogl");done()});
 
-function makeGlobe(geo){
+
+function makeGlobe(DOTS){
+  /* Globo de pontos (canvas 2D), adaptado da especificação "globo de pontos com cursor magnético".
+     Mesma API do globo anterior: go(view, instant). */
   const css=getComputedStyle(document.documentElement),col=n=>css.getPropertyValue(n).trim();
   const host=document.getElementById("stage");
-  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-  const small=innerWidth<760;
-  renderer.setPixelRatio(Math.min(devicePixelRatio,small?1.5:2));host.appendChild(renderer.domElement);
-  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,1,.1,100);camera.position.set(0,0,3.4);
-  const world=new THREE.Group();scene.add(world);
-
-  // textura equiretangular desenhada num canvas
-  const TW=small?2048:4096,TH=TW/2,cv=document.createElement("canvas");cv.width=TW;cv.height=TH;const g=cv.getContext("2d");
-  const X=lon=>(lon+180)/360*TW,Y=lat=>(90-lat)/180*TH;
-  function ring(r){g.beginPath();let jump=false;for(let i=0;i<r.length;i+=2){const x=X(r[i]),y=Y(r[i+1]);if(i===0)g.moveTo(x,y);else{if(Math.abs(r[i]-r[i-2])>180)jump=true;g.lineTo(x,y)}}g.closePath();return !jump}
-  function paint(hl){
-    g.fillStyle=col("--deep");g.fillRect(0,0,TW,TH);
-    g.strokeStyle="rgba(234,242,240,.05)";g.lineWidth=1;
-    for(let lon=-180;lon<=180;lon+=15){g.beginPath();g.moveTo(X(lon),0);g.lineTo(X(lon),TH);g.stroke()}
-    for(let lat=-75;lat<=75;lat+=15){g.beginPath();g.moveTo(0,Y(lat));g.lineTo(TW,Y(lat));g.stroke()}
-    g.fillStyle=col("--land");g.strokeStyle="rgba(7,19,26,.9)";g.lineWidth=TW/4096*1.4;
-    geo.world.forEach(r=>{if(ring(r))g.fill();g.stroke()});
-    Object.entries(geo.study).forEach(([slug,rs])=>{g.fillStyle=slug===hl?(THEME[slug]?THEME[slug].accent:col("--sun")):col("--accent");g.globalAlpha=hl&&slug!==hl?.55:1;rs.forEach(r=>{ring(r);g.fill()});g.globalAlpha=1;
-      g.strokeStyle="rgba(234,242,240,.6)";g.lineWidth=TW/4096*1.2;rs.forEach(r=>{ring(r);g.stroke()})});
-    tex.needsUpdate=true;
-  }
-  const tex=new THREE.CanvasTexture(cv);tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
-  const R=1,globe=new THREE.Mesh(new THREE.SphereGeometry(R,96,64),new THREE.MeshBasicMaterial({map:tex}));world.add(globe);
-  paint(null);
-
-  // halo (atmosfera)
-  const halo=new THREE.Mesh(new THREE.SphereGeometry(R*1.18,64,32),new THREE.ShaderMaterial({transparent:true,side:THREE.BackSide,depthWrite:false,
-    uniforms:{c:{value:new THREE.Color(col("--accent"))}},
-    vertexShader:"varying vec3 n;void main(){n=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-    fragmentShader:"uniform vec3 c;varying vec3 n;void main(){float i=pow(.72-dot(n,vec3(0,0,1.)),3.);gl_FragColor=vec4(c,1.)*i*.9;}"}));
-  scene.add(halo);
-
-  // estrelas discretas
-  const sg=new THREE.BufferGeometry(),sp=[];const sr=rng("estrelas");for(let i=0;i<900;i++){const v=new THREE.Vector3(sr()-.5,sr()-.5,sr()-.5).normalize().multiplyScalar(18+sr()*12);sp.push(v.x,v.y,v.z)}
-  sg.setAttribute("position",new THREE.Float32BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x8fa7aa,size:.05,transparent:true,opacity:.6})));
-
-  const ll=(lat,lon,r=R)=>{const p=(90-lat)*Math.PI/180,t=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t))};
-
-  // arcos da rede: Brasília -> cada país
-  const arcs=COUNTRIES.filter(c=>c.slug!=="brasil").map(c=>{
-    const a=ll(HUB.lat,HUB.lon),b=ll(c.lat,c.lon),mid=a.clone().add(b).multiplyScalar(.5),h=1+a.distanceTo(b)*.45;mid.normalize().multiplyScalar(h);
-    const pts=new THREE.QuadraticBezierCurve3(a,mid,b).getPoints(80);const geom=new THREE.BufferGeometry().setFromPoints(pts);geom.setDrawRange(0,0);
-    const line=new THREE.Line(geom,new THREE.LineBasicMaterial({color:new THREE.Color(col("--sun")),transparent:true,opacity:.85}));world.add(line);return {line,geom,p:0};
-  });
-  const hub=new THREE.Mesh(new THREE.SphereGeometry(.014,16,16),new THREE.MeshBasicMaterial({color:new THREE.Color(col("--sun"))}));hub.position.copy(ll(HUB.lat,HUB.lon,R*1.002));world.add(hub);
-
-  // pontos dos municípios
-  const dotGroups={};
-  COUNTRIES.forEach(c=>{const grp=new THREE.Group();c.munis.forEach(m=>{
-    const s=.0035+Math.sqrt(m.t)*.0011;
-    const d=new THREE.Mesh(new THREE.SphereGeometry(s,16,16),new THREE.MeshBasicMaterial({color:0xffffff}));d.position.copy(ll(m.lat,m.lon,R*1.003));grp.add(d);
-    const ring=new THREE.Mesh(new THREE.RingGeometry(s*1.6,s*2.1,32),new THREE.MeshBasicMaterial({color:new THREE.Color(col("--sun")),transparent:true,opacity:.9,side:THREE.DoubleSide}));
-    ring.position.copy(ll(m.lat,m.lon,R*1.004));ring.lookAt(ll(m.lat,m.lon,R*2));grp.add(ring)});
-    grp.scale.setScalar(.0001);grp.userData.k=0;world.add(grp);dotGroups[c.slug]=grp});
-
-  // estado da câmera
-  const st={lon:-30,lat:8,dist:3.4},tg={...st,spin:true,arcs:false,hl:null,dots:null};let hlNow=null,spinOff=0;
-  const shift=()=>innerWidth>=760?.55:0; const mob=()=>innerWidth<760?1.35:1; // globo à direita no computador, texto à esquerda
-  function go(v,instant){Object.assign(tg,{spin:!!v.spin,arcs:!!v.arcs,hl:v.hl||null,dots:v.dots||null,all:!!v.all,lon:v.lon,lat:v.lat,dist:v.dist});
-    if(!v.spin)spinOff=0;
-    if((v.hl||null)!==hlNow){hlNow=v.hl||null;paint(hlNow)}
-    if(instant||calm){st.lon=v.lon;st.lat=v.lat;st.dist=v.dist}}
-  const wrap=a=>((a+540)%360)-180;
-  function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+  const cv=document.createElement("canvas");host.appendChild(cv);const ctx=cv.getContext("2d");
+  const D2R=Math.PI/180,STEP=DOTS.step,SL=DOTS.slugs,raw=DOTS.p,N=raw.length/3;
+  const CL=new Float32Array(N),SLA=new Float32Array(N),LO=new Float32Array(N),FL=new Uint8Array(N);
+  for(let i=0;i<N;i++){const la=raw[i*3]*D2R;CL[i]=Math.cos(la);SLA[i]=Math.sin(la);LO[i]=raw[i*3+1]*D2R;FL[i]=raw[i*3+2]}
+  const ACC=col("--accent"),SUN=col("--sun");
+  const rgb=h=>{const n=parseInt(h.replace("#",""),16);return `${n>>16},${n>>8&255},${n&255}`};
+  let W=0,H=0,dpr=1;
+  function resize(){dpr=Math.min(devicePixelRatio||1,innerWidth<760?1.5:2);W=host.clientWidth||innerWidth;H=host.clientHeight||innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
   addEventListener("resize",resize);resize();
+  const sr=rng("estrelas"),stars=[];for(let i=0;i<160;i++)stars.push([sr(),sr(),.3+sr()*.9,.15+sr()*.4]);
 
-  // arrastar para girar (pequeno deslocamento que volta ao lugar)
-  let drag=null,dx=0,dy=0;renderer.domElement.style.touchAction="pan-y";
-  host.style.pointerEvents="auto";
-  addEventListener("pointerdown",e=>{if(e.target===renderer.domElement)drag={x:e.clientX,y:e.clientY}});
-  addEventListener("pointermove",e=>{if(drag){dx=(e.clientX-drag.x)*.25;dy=(e.clientY-drag.y)*.15}});
-  addEventListener("pointerup",()=>{drag=null});
+  // arcos Brasília -> cada país (grande círculo levemente elevado)
+  const v3=(lat,lon)=>[Math.cos(lat*D2R)*Math.cos(lon*D2R),Math.cos(lat*D2R)*Math.sin(lon*D2R),Math.sin(lat*D2R)];
+  const arcs=COUNTRIES.filter(c=>c.slug!=="brasil").map(c=>{const a=v3(HUB.lat,HUB.lon),b=v3(c.lat,c.lon);const om=Math.acos(Math.min(1,a[0]*b[0]+a[1]*b[1]+a[2]*b[2]))||1e-6;const pts=[];
+    for(let k=0;k<=64;k++){const t=k/64,s1=Math.sin((1-t)*om)/Math.sin(om),s2=Math.sin(t*om)/Math.sin(om),h=1+Math.sin(Math.PI*t)*Math.min(.22,om*.12);pts.push([(a[0]*s1+b[0]*s2)*h,(a[1]*s1+b[1]*s2)*h,(a[2]*s1+b[2]*s2)*h])}
+    return {pts,p:0}});
+  const mk={};COUNTRIES.forEach(c=>mk[c.slug]=0);
+
+  const st={lon:-30,lat:8,dist:3.4},tg={...st,spin:true,arcs:false,hl:null,dots:null};let spinOff=0;
+  const shift=()=>innerWidth>=760?.55:0,mob=()=>innerWidth<760?1.35:1;
+  function go(v,instant){Object.assign(tg,{spin:!!v.spin,arcs:!!v.arcs,hl:v.hl||null,dots:v.dots||null,all:!!v.all,lon:v.lon,lat:v.lat,dist:v.dist});
+    if(!v.spin)spinOff=0;if(instant||calm){st.lon=v.lon;st.lat=v.lat;st.dist=v.dist}}
+  const wrap=a=>((a+540)%360)-180;
+
+  // arrastar para girar, com inércia, voltando ao enquadramento do capítulo
+  let drag=null,dx=0,dy=0,vx=0;cv.style.touchAction="pan-y";host.style.pointerEvents="auto";
+  const free=e=>e.target===cv||!(e.target.closest&&e.target.closest(".card,a,button,input,select,textarea,header,nav,.chapters,.bar,.ap-hud,footer"));
+  const onGlobe=e=>Math.hypot(e.clientX-view.cx,e.clientY-view.cy)<view.R;
+  addEventListener("pointerdown",e=>{if(e.button===0&&free(e)&&onGlobe(e)){drag={x:e.clientX,y:e.clientY,dx,dy};vx=0;e.preventDefault()}});
+  addEventListener("pointermove",e=>{if(drag){const ndx=drag.dx+(e.clientX-drag.x)*.25;vx=ndx-dx;dx=ndx;dy=Math.max(-50,Math.min(50,drag.dy+(e.clientY-drag.y)*.15))}});
+  addEventListener("pointerup",()=>{drag=null});addEventListener("pointercancel",()=>{drag=null});
+
+  // geometria atual, usada também pelo cursor magnético
+  const view={cx:0,cy:0,R:0};
+  let lam0=0,phi0=0,cp0=1,sp0=0;
+  function proj(cl,sl,lo,h){const dl=lo-lam0,cd=Math.cos(dl);return [view.cx+h*cl*Math.sin(dl)*view.R,view.cy-h*(cp0*sl-sp0*cl*cd)*view.R,sp0*sl+cp0*cl*cd]}
+  function projV(v){const la=Math.asin(Math.max(-1,Math.min(1,v[2]/Math.hypot(v[0],v[1],v[2])))),lo=Math.atan2(v[1],v[0]),h=Math.hypot(v[0],v[1],v[2]);return proj(Math.cos(la),Math.sin(la),lo,h)}
 
   let last=performance.now();
   function frame(t){const dt=Math.min(.05,(t-last)/1000);last=t;
     const k=calm?1:1-Math.pow(.0015,dt);
     if(tg.spin&&!calm)spinOff+=dt*6;
-    const tl=tg.lon-spinOff;st.lon+=wrap(tl-st.lon)*k;st.lat+=(tg.lat-st.lat)*k;st.dist+=(tg.dist-st.dist)*k;
-    if(!drag){dx*=.92;dy*=.92}
+    st.lon+=wrap(tg.lon-spinOff-st.lon)*k;st.lat+=(tg.lat-st.lat)*k;st.dist+=(tg.dist-st.dist)*k;
+    if(!drag){dx+=vx;vx*=.92;dx*=.96;dy*=.96}
     const lon=st.lon-dx,lat=Math.max(-70,Math.min(70,st.lat+dy));
-    world.rotation.set(lat*Math.PI/180,Math.PI/2-(lon+180)*Math.PI/180,0,"XYZ");
-    halo.position.x=world.position.x=shift()*Math.max(.15,(st.dist-1)/2.4);
-    halo.position.y=world.position.y=innerWidth<760?.42*(st.dist/2.4):0;
-    camera.position.z=st.dist*mob();
-    arcs.forEach((a,i)=>{const want=tg.arcs?1:0;a.p+= (want-a.p)*(calm?1:Math.min(1,dt*(want?1.4:3)));a.geom.setDrawRange(0,Math.round(a.p*81))});
-    Object.entries(dotGroups).forEach(([s,gp])=>{const want=(tg.dots===s||tg.all||(tg.hl===s))?1:0;gp.userData.k+=(want-gp.userData.k)*(calm?1:Math.min(1,dt*4));gp.scale.setScalar(Math.max(.0001,gp.userData.k));
-      if(!calm)gp.children.forEach((m,j)=>{if(j%2){const p=1+((t/1000+j*.3)%1.6)*.9;m.scale.setScalar(p);m.material.opacity=Math.max(0,.9-((t/1000+j*.3)%1.6)/1.6)}})});
-    renderer.render(scene,camera);requestAnimationFrame(frame)}
+    lam0=lon*D2R;phi0=lat*D2R;cp0=Math.cos(phi0);sp0=Math.sin(phi0);
+    const z=st.dist*mob(),unit=(H/2)/(.364*z);
+    view.R=(H/2)/.364/Math.sqrt(Math.max(.05,z*z-1));
+    view.cx=W/2+shift()*Math.max(.15,(st.dist-1)/2.4)*unit+(window.__gox||0);
+    view.cy=H/2-(innerWidth<760?.42*(st.dist/2.4):0)*unit+(window.__goy||0);
+    const R=view.R,cx=view.cx,cy=view.cy;
+    ctx.clearRect(0,0,W,H);
+    // estrelas
+    stars.forEach(s=>{ctx.fillStyle=`rgba(200,215,218,${s[3]})`;ctx.fillRect(s[0]*W,s[1]*H,s[2],s[2])});
+    // halo
+    const hg=ctx.createRadialGradient(cx,cy,R*.98,cx,cy,R*1.22);hg.addColorStop(0,`rgba(${rgb(ACC)},.22)`);hg.addColorStop(1,`rgba(${rgb(ACC)},0)`);
+    ctx.fillStyle=hg;ctx.beginPath();ctx.arc(cx,cy,R*1.22,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="rgba(5,14,20,.55)";ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,0.18)";ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+    const DS=Math.max(1.1,R*STEP*D2R*.62),whole=R<Math.min(W,H)*.6;
+    const hl=tg.hl,hlc=hl&&THEME[hl]?THEME[hl].accent:SUN;const hlIdx=hl?SL.indexOf(hl)+1:-1;
+    for(let pass=whole?0:1;pass<2;pass++)for(let i=0;i<N;i++){
+      const dl=LO[i]-lam0,cd=Math.cos(dl),zz=sp0*SLA[i]+cp0*CL[i]*cd;
+      if(pass===0?zz>=0:zz<0)continue;
+      const x=cx+CL[i]*Math.sin(dl)*R,y=cy-(cp0*SLA[i]-sp0*CL[i]*cd)*R;
+      if(x<-20||x>W+20||y<-20||y>H+20)continue;
+      const f=FL[i];
+      if(pass===0){ctx.fillStyle=`rgba(255,255,255,${.10+.08*(1+zz)})`;const s=DS*.7;ctx.fillRect(x-s/2,y-s/2,s,s);continue}
+      let a=.35+.6*zz,c="255,255,255";
+      if(f){c=rgb(f===hlIdx?hlc:ACC);a=hl&&f!==hlIdx?.45+.4*zz:.6+.4*zz}else if(hl)a*=.75;
+      ctx.fillStyle=`rgba(${c},${a})`;const s=DS*(.75+.25*zz);ctx.fillRect(x-s/2,y-s/2,s,s)}
+    // equador
+    for(let pass=0;pass<2;pass++){ctx.beginPath();let pen=false;for(let q=0;q<=180;q++){const p=proj(1,0,q*2*D2R,1);const vis=pass?p[2]>=0:p[2]<0;if(vis){pen?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);pen=true}else pen=false}
+      ctx.lineWidth=1;ctx.strokeStyle=pass?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.1)";ctx.stroke()}
+    // arcos
+    ctx.lineCap="round";
+    arcs.forEach(a=>{const want=tg.arcs?1:0;a.p+=(want-a.p)*(calm?1:Math.min(1,dt*(want?1.4:3)));const kmax=Math.round(a.p*64);
+      for(let q=1;q<=kmax;q++){const A=projV(a.pts[q-1]),B=projV(a.pts[q]);if((A[2]<0&&Math.hypot(A[0]-cx,A[1]-cy)<R)||(B[2]<0&&Math.hypot(B[0]-cx,B[1]-cy)<R))continue;
+        const tt=q/64;ctx.strokeStyle=`rgba(${rgb(SUN)},${.5+.45*tt})`;ctx.lineWidth=Math.max(1,R*(.004+.01*tt*tt));ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(B[0],B[1]);ctx.stroke()}});
+    // Brasília
+    const hb=proj(Math.cos(HUB.lat*D2R),Math.sin(HUB.lat*D2R),HUB.lon*D2R,1.002);
+    if(hb[2]>0){ctx.fillStyle=SUN;ctx.beginPath();ctx.arc(hb[0],hb[1],Math.max(2.5,R*.012),0,Math.PI*2);ctx.fill()}
+    // municípios: ponto branco e anel pulsando
+    COUNTRIES.forEach(c=>{const want=(tg.dots===c.slug||tg.all||tg.hl===c.slug)?1:0;mk[c.slug]+=(want-mk[c.slug])*(calm?1:Math.min(1,dt*4));const kk=mk[c.slug];if(kk<.02)return;
+      c.munis.forEach((m,j)=>{const p=proj(Math.cos(m.lat*D2R),Math.sin(m.lat*D2R),m.lon*D2R,1.003);if(p[2]<=0)return;
+        const r=Math.max(1.8,(.0035+Math.sqrt(m.t)*.0011)*R)*kk;ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fill();
+        if(!calm){const ph=((t/1000+j*.3)%1.6)/1.6;ctx.strokeStyle=`rgba(${rgb(SUN)},${(.9-ph*.9)*kk})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p[0],p[1],r*(1.8+ph*1.6),0,Math.PI*2);ctx.stroke()}})});
+    requestAnimationFrame(frame)}
   requestAnimationFrame(frame);
+
+  // cursor magnético (só com mouse): perto do globo, um anel prende nele e o puxa de leve
+  (function(){if(!matchMedia("(pointer: fine)").matches)return;
+    const cur=document.createElement("div");cur.className="gcursor";document.body.appendChild(cur);
+    let mx=-100,my=-100,x=-100,y=-100,w=10,bw=0,fill=1,seen=false,pressed=false,overStage=false,ox=0,oy=0;
+    addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY;overStage=free(e);if(!seen){x=mx;y=my;seen=true}});
+    addEventListener("pointerdown",()=>pressed=true);addEventListener("pointerup",()=>pressed=false);
+    document.addEventListener("mouseleave",()=>{mx=my=-100;overStage=false});
+    const lerp=(a,b,t)=>a+(b-a)*t;
+    (function tick(){const gx=view.cx-ox,gy=view.cy-oy,R=view.R,d=Math.hypot(mx-gx,my-gy);
+      const fits=R<Math.min(W,H)*.5;const stuck=(overStage||drag)&&fits&&(!!drag||d<R*1.12);
+      ox=lerp(ox,stuck?(mx-gx)*.05:0,.15);oy=lerp(oy,stuck?(my-gy)*.05:0,.15);window.__gox=ox;window.__goy=oy;
+      const target=stuck?{x:gx+(mx-gx)*.08,y:gy+(my-gy)*.08,w:R*2.2,b:Math.max(1.2,R*.01)}:null;
+      const tw=target?target.w*(pressed?.94:1):(pressed?7:10);
+      x=lerp(x,target?target.x:mx,target?.18:.35);y=lerp(y,target?target.y:my,target?.18:.35);w=lerp(w,tw,.2);bw=lerp(bw,target?target.b:0,.3);fill=lerp(fill,target?(pressed?.06:0):1,.25);
+      const show=overStage||!!drag;cur.classList.toggle("on",show);document.documentElement.classList.toggle("gcur",show);
+      cur.style.width=cur.style.height=w+"px";cur.style.borderWidth=bw+"px";cur.style.background=`rgba(255,255,255,${fill.toFixed(3)})`;cur.style.transform=`translate(${x-w/2}px,${y-w/2}px)`;
+      requestAnimationFrame(tick)})();
+  })();
   return {go};
 }
 </script>
