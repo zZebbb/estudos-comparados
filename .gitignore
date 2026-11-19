@@ -1,2 +1,5 @@
 .DS_Store
 *.log
+
+# fotos reais: fora do git até confirmar autorização de imagem
+fotos/
