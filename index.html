@@ -414,3 +414,9 @@ function makeGlobe(geo){
   return {go};
 }
 </script>
+<script>
+/* Sempre começar do topo: ao abrir a página e ao clicar num link para o outro artefato (globo ou diário). */
+try{history.scrollRestoration="manual"}catch(e){}
+addEventListener("load",()=>scrollTo({top:0,behavior:"instant"}));
+document.addEventListener("click",e=>{const a=e.target.closest('a[href*="claude.ai/artifact/"]');if(a)setTimeout(()=>scrollTo({top:0,behavior:"instant"}),300)});
+</script>
