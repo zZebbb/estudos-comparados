@@ -107,6 +107,21 @@ blockquote cite{font-style:normal;color:var(--muted);font-size:14px}
 footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(--muted);font-size:13px;
   padding:24px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px));background:var(--night)}
 
+/* identidade por país */
+.tint{position:fixed;inset:0;z-index:0;pointer-events:none;background:var(--night);transition:background-color 1.2s ease}
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 1s ease;background-size:cover;background-position:center}
+.scene.on{opacity:1}
+.scene span{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:16px;font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:rgba(234,242,240,.7);background:rgba(7,19,26,.55);padding:5px 9px;border-radius:6px}
+#stage{z-index:1}.vignette{z-index:2}
+.flag{width:54px;height:36px;border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,.25);flex:none}
+.flag.sm{width:21px;height:14px;border-radius:2px}
+.ctitle{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.photos figure{margin:0;display:flex;flex-direction:column;gap:4px}
+.photos .ph{aspect-ratio:4/3;border-radius:8px;border:1px dashed var(--line);display:grid;place-items:center;text-align:center;padding:6px;font:500 10.5px var(--f-mono);color:var(--muted);
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.04) 0 8px,transparent 8px 16px)}
+.photos figcaption{font-size:12px;color:var(--muted)}
+
 /* carregamento */
 #loader{position:fixed;inset:0;z-index:50;background:var(--night);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .8s}
 #loader.done{opacity:0;pointer-events:none}
@@ -136,6 +151,8 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 </style>
 
 <div id="loader" role="status"><b>Estudos Comparados</b><div class="bar2"><i id="lbar"></i></div><span class="eyebrow">carregando o globo</span></div>
+<div class="tint" id="tint" aria-hidden="true"></div>
+<div class="scene" id="scene" aria-hidden="true"><span id="scene-cap"></span></div>
 <div id="stage" aria-hidden="true"></div>
 <div class="vignette"></div>
 
@@ -175,6 +192,27 @@ const COUNTRIES=[
   munis:[["São Tomé",6.73,0.34],["Santo Amaro",6.64,0.39]]},
 ];
 const PENDING=5;
+const THEME={ // cores inspiradas nas bandeiras, ajustadas para o fundo escuro
+ brasil:{accent:"#F6D23A",tint:"#0B7A3E",alt:"#3D6FD1",paisagem:"Floresta e litoral"},
+ peru:{accent:"#FF5A66",tint:"#B00D1D",alt:"#F4F4F4",paisagem:"Cordilheira dos Andes"},
+ chile:{accent:"#FF6B6B",tint:"#0039A6",alt:"#F4F4F4",paisagem:"Deserto e cordilheira"},
+ colombia:{accent:"#FCD116",tint:"#003893",alt:"#E8505B",paisagem:"Montanhas cafeeiras"},
+ mexico:{accent:"#3FBF7F",tint:"#006847",alt:"#E8505B",paisagem:"Planalto e cidades coloniais"},
+ espanha:{accent:"#FFC400",tint:"#AA151B",alt:"#F4F4F4",paisagem:"Cidades históricas"},
+ portugal:{accent:"#FF6B5C",tint:"#046A38",alt:"#FFE14D",paisagem:"Costa atlântica"},
+ "sao-tome":{accent:"#FFE14D",tint:"#12862B",alt:"#E8505B",paisagem:"Ilhas vulcânicas"},
+};
+const FLAG={ // bandeiras simplificadas em SVG (viewBox 30x20)
+ brasil:'<rect width="30" height="20" fill="#009C3B"/><path d="M15 2.5L27.5 10L15 17.5L2.5 10z" fill="#FFDF00"/><circle cx="15" cy="10" r="4.2" fill="#002776"/>',
+ peru:'<rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#D91023"/><rect x="20" width="10" height="20" fill="#D91023"/>',
+ chile:'<rect width="30" height="20" fill="#D52B1E"/><rect width="30" height="10" fill="#fff"/><rect width="10" height="10" fill="#0039A6"/><path d="M5 2.2l1 3h3.1l-2.5 1.8 1 3-2.6-1.9-2.6 1.9 1-3L.9 5.2H4z" fill="#fff"/>',
+ colombia:'<rect width="30" height="20" fill="#CE1126"/><rect width="30" height="15" fill="#003893"/><rect width="30" height="10" fill="#FCD116"/>',
+ mexico:'<rect width="30" height="20" fill="#fff"/><rect width="10" height="20" fill="#006847"/><rect x="20" width="10" height="20" fill="#CE1126"/><circle cx="15" cy="10" r="2.6" fill="#8C5A2B"/>',
+ espanha:'<rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/>',
+ portugal:'<rect width="30" height="20" fill="#DA291C"/><rect width="12" height="20" fill="#046A38"/><circle cx="12" cy="10" r="3.6" fill="#FFE900"/><circle cx="12" cy="10" r="2" fill="#DA291C"/>',
+ "sao-tome":'<rect width="30" height="20" fill="#12AD2B"/><rect y="6" width="30" height="8" fill="#FFCE00"/><path d="M0 0L9 10L0 20z" fill="#D21034"/><path d="M15 8.2l.5 1.4h1.5l-1.2.9.5 1.4-1.3-.9-1.3.9.5-1.4-1.2-.9h1.5zM22 8.2l.5 1.4h1.5l-1.2.9.5 1.4-1.3-.9-1.3.9.5-1.4-1.2-.9h1.5z" fill="#000"/>',
+};
+const flag=(slug,cls="flag")=>`<svg class="${cls}" viewBox="0 0 30 20" role="img" aria-label="Bandeira">${FLAG[slug]}</svg>`;
 function rng(seed){let s=0;for(const c of seed)s=(s*31+c.charCodeAt(0))>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296)}
 COUNTRIES.forEach(c=>{const r=rng(c.slug);c.munis=c.munis.map(([n,lon,lat])=>({n,lon,lat,cats:CATS.map((_,i)=>Math.round(r()*(i===5?3:i===4?4:9))+(i<2?3:1))}));
   c.munis.forEach(m=>m.t=m.cats.reduce((a,b)=>a+b,0));
@@ -202,14 +240,15 @@ COUNTRIES.forEach((c,ci)=>{
   const dots=c.cats.flatMap((n,i)=>Array.from({length:n},()=>i));
   STEPS.push({id:c.slug,chapter:c.nome,country:c.slug,view:{lon:c.lon,lat:c.lat,dist:c.slug==="brasil"?2.15:1.9,hl:c.slug},html:`
     <span class="eyebrow">Capítulo ${ci+1} · ${esc(c.status)}</span>
-    <h2 class="huge">${esc(c.nome)}</h2>
+    <div class="ctitle">${flag(c.slug)}<h2 class="huge">${esc(c.nome)}</h2></div>
     <p class="lead">A equipe ouviu <b class="mono" data-count="${c.total}">0</b> profissionais em ${c.munis.length} municípios, de ${esc(maxM.n)} (${maxM.t} entrevistas) a ${esc(minM.n)} (${minM.t}).</p>`});
   STEPS.push({id:c.slug+"-lugares",country:c.slug,view:{lon:c.lon,lat:c.lat,dist:c.slug==="brasil"?1.75:1.45,hl:c.slug,dots:c.slug},glass:true,html:`
-    <span class="eyebrow">${esc(c.nome)} · onde</span>
+    <span class="eyebrow" style="display:flex;gap:8px;align-items:center">${flag(c.slug,"flag sm")}${esc(c.nome)} · onde</span>
     <h3 style="font-size:30px">Cada ponto no globo é um município</h3>
-    <div class="munis">${[...c.munis].sort((a,b)=>b.t-a.t).map(m=>`<div class="mrow"><span>${esc(m.n)}</span><span class="t"><i data-w="${(m.t/maxM.t*100).toFixed(1)}"></i></span><span class="v">${m.t}</span></div>`).join("")}</div>`});
+    <div class="munis">${[...c.munis].sort((a,b)=>b.t-a.t).map(m=>`<div class="mrow"><span>${esc(m.n)}</span><span class="t"><i data-w="${(m.t/maxM.t*100).toFixed(1)}"></i></span><span class="v">${m.t}</span></div>`).join("")}</div>
+    <div class="photos">${c.munis.slice(0,3).map(m=>`<figure><div class="ph">foto da ação<br>em ${esc(m.n)}</div><figcaption>${esc(m.n)}</figcaption></figure>`).join("")}</div>`});
   STEPS.push({id:c.slug+"-quem",country:c.slug,view:{lon:c.lon+6,lat:c.lat,dist:c.slug==="brasil"?2.3:2.0,hl:c.slug,dots:c.slug},glass:true,html:`
-    <span class="eyebrow">${esc(c.nome)} · quem</span>
+    <span class="eyebrow" style="display:flex;gap:8px;align-items:center">${flag(c.slug,"flag sm")}${esc(c.nome)} · quem</span>
     <h3 style="font-size:30px">${esc(CATS[top])} foi a categoria mais ouvida: ${c.cats[top]} de ${c.total} (${pct(c.cats[top],c.total)}%)</h3>
     <div class="waffle" aria-label="Uma bolinha por entrevista, colorida pela categoria">${dots.map((k,j)=>`<i style="background:${CC[k]};transition-delay:${Math.min(j*8,900)}ms"></i>`).join("")}</div>
     <div class="legend">${CATS.map((k,i)=>`<span><i style="background:${CC[i]}"></i>${k} <b>${c.cats[i]}</b></span>`).join("")}</div>`});
@@ -243,12 +282,24 @@ calmBtn.addEventListener("click",()=>setCalm(!calm));setCalm(calm);
 function countUp(el){const to=+el.dataset.count;if(calm){el.textContent=fmt(to);return}const t0=performance.now(),d=1200;
   const f=t=>{const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);el.textContent=fmt(Math.round(to*e));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
 
+const rootS=document.documentElement.style,tintEl=document.getElementById("tint"),sceneEl=document.getElementById("scene"),sceneCap=document.getElementById("scene-cap");
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`}
+function applyTheme(s){const t=s.country&&THEME[s.country];
+  if(t){rootS.setProperty("--sun",t.accent);tintEl.style.backgroundImage=`radial-gradient(90% 80% at 70% 50%, ${hexA(t.tint,.45)}, var(--night) 75%)`}
+  else{rootS.removeProperty("--sun");tintEl.style.backgroundImage="none"}
+  // paisagem: só no passo de chegada de cada país (por enquanto um degradê no lugar da foto)
+  const arrive=t&&s.id===s.country;
+  if(arrive){sceneEl.style.backgroundImage=`linear-gradient(180deg, rgba(7,19,26,.2), var(--night) 92%), linear-gradient(120deg, ${hexA(t.tint,.9)}, ${hexA(t.accent,.35)} 55%, ${hexA(t.alt,.25)})`;
+    sceneCap.textContent=`Espaço para foto de paisagem · ${t.paisagem}`}
+  sceneEl.classList.toggle("on",!!arrive);
+}
 let current=-1;
 function activate(i){if(i===current)return;current=i;const s=STEPS[i];
   document.querySelectorAll(".step").forEach(el=>el.classList.toggle("on",+el.dataset.i===i));
   const el=document.querySelector(`.step[data-i="${i}"]`);
   el.querySelectorAll("[data-count]").forEach(countUp);
   el.querySelectorAll(".mrow i[data-w], .stack[data-w]").forEach(b=>b.style.width=b.dataset.w+"%");
+  applyTheme(s);
   const ch=s.country||s.id;document.querySelectorAll(".chapters a").forEach(a=>a.classList.toggle("on",a.dataset.ch===ch));
   if(G)G.go(s.view);
 }
@@ -286,7 +337,7 @@ function makeGlobe(geo){
     for(let lat=-75;lat<=75;lat+=15){g.beginPath();g.moveTo(0,Y(lat));g.lineTo(TW,Y(lat));g.stroke()}
     g.fillStyle=col("--land");g.strokeStyle="rgba(7,19,26,.9)";g.lineWidth=TW/4096*1.4;
     geo.world.forEach(r=>{if(ring(r))g.fill();g.stroke()});
-    Object.entries(geo.study).forEach(([slug,rs])=>{g.fillStyle=slug===hl?col("--sun"):col("--accent");g.globalAlpha=hl&&slug!==hl?.55:1;rs.forEach(r=>{ring(r);g.fill()});g.globalAlpha=1;
+    Object.entries(geo.study).forEach(([slug,rs])=>{g.fillStyle=slug===hl?(THEME[slug]?THEME[slug].accent:col("--sun")):col("--accent");g.globalAlpha=hl&&slug!==hl?.55:1;rs.forEach(r=>{ring(r);g.fill()});g.globalAlpha=1;
       g.strokeStyle="rgba(234,242,240,.6)";g.lineWidth=TW/4096*1.2;rs.forEach(r=>{ring(r);g.stroke()})});
     tex.needsUpdate=true;
   }
