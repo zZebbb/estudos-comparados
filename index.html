@@ -171,6 +171,7 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ================= DADOS DE EXEMPLO (no site real: arquivo gerado das planilhas) ================= */
+const DIARIOS={"sao-tome":"https://claude.ai/artifact/MqXNFjqJ4S7JeQNFg65YNY"};
 const CATS=["Médico(a)","Enfermeiro(a)","Técnico(a) de enfermagem","Agente comunitário(a)","Gestor(a)","Outros"];
 const CC=["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)","var(--c6)"];
 const COUNTRIES=[
@@ -255,7 +256,7 @@ COUNTRIES.forEach((c,ci)=>{
   STEPS.push({id:c.slug+"-voz",country:c.slug,view:{lon:c.lon-5,lat:c.lat+3,dist:2.4,hl:c.slug},html:`
     <span class="fict">Trecho fictício · no site real, até 3 trechos aprovados por país</span>
     <blockquote><p>${esc(c.quote)}</p><cite>${esc(c.cat)} · ${esc(c.nome)}</cite></blockquote>
-    <a class="btn ghost" href="dados.html#pais-${c.slug}">Ver todos os dados de ${esc(c.nome)} →</a>`});
+    <div class="row" style="gap:12px;flex-wrap:wrap">${DIARIOS[c.slug]?`<a class="btn" href="${DIARIOS[c.slug]}" target="_blank" rel="noopener">Abrir o diário de ${esc(c.nome)} ↗</a>`:""}<a class="btn ghost" href="dados.html#pais-${c.slug}">Ver todos os dados de ${esc(c.nome)} →</a></div>`});
 });
 const maxT=Math.max(...COUNTRIES.map(c=>c.total));
 STEPS.push({id:"comparar",chapter:"Comparar",view:{lon:-40,lat:10,dist:3.2,arcs:true,all:true},glass:true,end:true,html:`
