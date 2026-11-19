@@ -1,0 +1,358 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudos Comparados ECoS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: barra superior fixa + uma "view" por vez (rota pelo #), conteúdo em coluna de 1120px; mapa como peça central */
+:root{
+  --bg:#F4F6F5; --surface:#FFFFFF; --ink:#13242A; --muted:#5A6B70; --line:#D9E1E0;
+  --accent:#0B7A63; --accent-soft:#DCEFEA; --sun:#E0A526; --sun-soft:#FBF0D6;
+  --land:#E3E8E6; --land-line:#FFFFFF; --focus:#0B7A63;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1A1D; --surface:#16252A; --ink:#E6EEEC; --muted:#93A6A8; --line:#27393E;
+  --accent:#3CC4A2; --accent-soft:#143A33; --sun:#F0B941; --sun-soft:#3A3018;
+  --land:#22343A; --land-line:#0F1A1D; --focus:#3CC4A2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1A1D; --surface:#16252A; --ink:#E6EEEC; --muted:#93A6A8; --line:#27393E;
+  --accent:#3CC4A2; --accent-soft:#143A33; --sun:#F0B941; --sun-soft:#3A3018;
+  --land:#22343A; --land-line:#0F1A1D; --focus:#3CC4A2; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.6vw,46px);letter-spacing:-.01em}
+h2{font-size:clamp(22px,3vw,30px)}
+h3{font-size:18px;font-weight:500}
+p{margin:0;max-width:65ch}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* aviso */
+.notice{background:var(--sun-soft);color:var(--ink);font-size:13px;border-bottom:1px solid var(--line)}
+.notice .wrap{display:flex;gap:10px;align-items:center;padding-block:8px;flex-wrap:wrap}
+.notice b{font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--sun);color:#1d1606}
+
+/* topo */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:20px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);margin-right:auto}
+.brand strong{font-family:var(--f-display);font-size:19px;line-height:1.1}
+.brand span{font-size:12px;color:var(--muted)}
+nav.main{display:flex;gap:4px;flex-wrap:wrap}
+nav.main a{text-decoration:none;color:var(--muted);font-size:14px;padding:6px 10px;border-radius:6px}
+nav.main a:hover{color:var(--ink);background:var(--bg)}
+nav.main a[aria-current="page"]{color:var(--ink);background:var(--accent-soft);font-weight:500}
+.lang{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.lang button{font:500 12px var(--f-mono);background:none;border:0;color:var(--muted);padding:5px 8px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+
+main{padding-block:32px 64px}
+.view{display:flex;flex-direction:column;gap:40px}
+.section-head{display:flex;flex-direction:column;gap:8px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:32px;align-items:center}
+.hero-text{display:flex;flex-direction:column;gap:16px}
+.hero-text p{color:var(--muted);font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stat{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:var(--f-display);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.stat .l{font-size:12px;color:var(--muted)}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;font:500 14px var(--f-body);text-decoration:none;padding:9px 14px;border-radius:8px;border:1px solid var(--ink);color:var(--ink);background:none;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--surface)}
+
+/* mapa */
+.mapbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;position:relative}
+.mapbox svg{display:block;width:100%;height:auto}
+.mapbox .bgland{fill:var(--land);stroke:var(--land-line);stroke-width:.6}
+.mapbox .ctry{fill:var(--accent);fill-opacity:.78;stroke:var(--surface);stroke-width:.8;cursor:pointer;transition:fill-opacity .15s}
+.mapbox .ctry:hover,.mapbox .ctry:focus{fill-opacity:1;outline:none}
+.mapbox .ctry.sel{fill:var(--sun);fill-opacity:1}
+.mapbox .dot{fill:var(--sun);stroke:var(--surface);stroke-width:1.2}
+.mapbox .stp{fill:none;stroke:var(--accent);stroke-width:1.5;cursor:pointer}
+.maptip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;padding:6px 9px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-120%)}
+.maplegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:6px 8px 2px}
+.maplegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* grade de países */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.ccard{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);text-decoration:none;color:var(--ink)}
+.ccard:hover{border-color:var(--accent)}
+.ccard .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ccard strong{font-family:var(--f-display);font-size:17px}
+.ccard small{color:var(--muted);font-size:12px}
+.ccard.pending{background:none;border-style:dashed;color:var(--muted);cursor:default}
+.status{font:500 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.status.ok{background:var(--accent-soft);color:var(--accent)}
+.status.run{background:var(--sun-soft);color:var(--ink)}
+
+/* página do país */
+.crumbs{font-size:13px;color:var(--muted)}
+.crumbs a{color:var(--muted)}
+.chead{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:32px;align-items:start}
+.chead .meta{display:flex;flex-direction:column;gap:12px}
+dl.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:14px}
+dl.facts dt{color:var(--muted)}
+dl.facts dd{margin:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13px}
+.bar .track{height:12px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bar .fill{height:100%;background:var(--accent);border-radius:3px}
+.bar .v{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font:500 12px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+blockquote{margin:0;padding:16px 18px;border-left:3px solid var(--sun);background:var(--bg);border-radius:0 8px 8px 0;display:flex;flex-direction:column;gap:8px}
+blockquote p{font-family:var(--f-display);font-weight:500;font-size:17px;line-height:1.35}
+blockquote cite{font-style:normal;font-size:12px;color:var(--muted)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.ph{aspect-ratio:4/3;max-width:100%;border-radius:8px;background:
+  repeating-linear-gradient(135deg,var(--accent-soft) 0 10px,transparent 10px 20px),var(--bg);border:1px solid var(--line);
+  display:grid;place-items:center;color:var(--muted);font:500 12px var(--f-mono)}
+figcaption{font-size:13px}
+figcaption small{display:block;color:var(--muted);font-size:12px}
+.minimap svg{width:100%;height:auto;display:block}
+
+/* comparativo */
+.filters{display:flex;gap:16px;flex-wrap:wrap;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+select{font:14px var(--f-body);padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.stack{display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--bg)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* listas */
+.publist{display:flex;flex-direction:column}
+.pub{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.pub .t{font-weight:500}
+.pub small{color:var(--muted);display:block}
+.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.chat{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.msg{padding:9px 12px;border-radius:10px;max-width:85%}
+.msg.u{align-self:flex-end;background:var(--ink);color:var(--surface)}
+.msg.b{align-self:flex-start;background:var(--bg)}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.note{font-size:13px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-block:24px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
+
+@media (max-width:820px){
+  .hero,.chead,.two{grid-template-columns:minmax(0,1fr)}
+  .pub{grid-template-columns:minmax(0,1fr)}
+  .bar{grid-template-columns:minmax(90px,130px) minmax(0,1fr) 40px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="notice"><div class="wrap"><span class="pill">Protótipo</span><span><b>Site em construção.</b> Todos os números, trechos e fotos abaixo são <b>exemplos fictícios</b>, só para mostrar o formato.</span></div></div>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="#inicio"><strong>Estudos Comparados</strong><span>Laboratório ECoS · UnB</span></a>
+  <nav class="main" aria-label="Seções">
+    <a href="#inicio">Início</a><a href="#mapa">Mapa</a><a href="#comparativo">Comparativo</a><a href="#publicacoes">Publicações</a><a href="#galeria">Galeria</a><a href="#materiais">Materiais</a><a href="#equipe">Equipe</a>
+  </nav>
+  <div class="lang" role="group" aria-label="Idioma">
+    <button id="lang-pt" aria-pressed="true">PT</button><button id="lang-es" aria-pressed="false" title="Em breve">ES</button><button id="lang-en" aria-pressed="false" title="Em breve">EN</button>
+  </div>
+</div></header>
+
+<main class="wrap" id="app"></main>
+
+<footer><div class="wrap">
+  <span>Estudos Comparados · Qualidade da informação em saúde na Atenção Primária · Laboratório ECoS, Universidade de Brasília</span>
+  <span>Dados descritivos e anonimizados. Nenhum dado primário é publicado antes dos artigos.</span>
+</div></footer>
+
+<script>
+/* ======== DADOS DE EXEMPLO (no site real, vêm das planilhas por país) ======== */
+const CATS=["Médico(a)","Enfermeiro(a)","Técnico(a) de enfermagem","Agente comunitário(a)","Gestor(a)","Outros"];
+const CAT_COLORS=["var(--accent)","#3E9FC4","#E0A526","#8C6BC7","#D0605E","#8A9A9E"];
+const COUNTRIES=[
+ {slug:"brasil",nome:"Brasil",status:"run",parceira:"Universidade de Brasília (UnB) e redes estaduais",periodo:"2025 a 2027",
+  munis:[["Brasília","DF",-47.88,-15.79],["São Paulo","SP",-46.63,-23.55],["Belo Horizonte","MG",-43.94,-19.92],["Salvador","BA",-38.50,-12.97],["Manaus","AM",-60.02,-3.12],["Porto Alegre","RS",-51.23,-30.03]]},
+ {slug:"chile",nome:"Chile",status:"ok",parceira:"Universidade parceira (a confirmar)",periodo:"2025",
+  munis:[["Santiago","RM",-70.65,-33.45],["Valparaíso","V",-71.62,-33.05],["Concepción","VIII",-73.05,-36.82]]},
+ {slug:"colombia",nome:"Colômbia",status:"ok",parceira:"Universidade parceira (a confirmar)",periodo:"2025",
+  munis:[["Bogotá","DC",-74.07,4.71],["Medellín","ANT",-75.57,6.24],["Cali","VAC",-76.53,3.45]]},
+ {slug:"espanha",nome:"Espanha",status:"ok",parceira:"Cooperação OPAS/Decit",periodo:"2024 a 2025",
+  munis:[["Madri","MD",-3.70,40.42],["Barcelona","CT",2.17,41.39],["Sevilha","AN",-5.98,37.39]]},
+ {slug:"mexico",nome:"México",status:"ok",parceira:"Universidade parceira (a confirmar)",periodo:"2025",
+  munis:[["Cidade do México","CDMX",-99.13,19.43],["Guadalajara","JAL",-103.35,20.67],["Oaxaca","OAX",-96.73,17.07]]},
+ {slug:"peru",nome:"Peru",status:"ok",parceira:"Cooperação OPAS/Decit",periodo:"2024 a 2025",
+  munis:[["Lima","LIM",-77.04,-12.05],["Cusco","CUS",-71.97,-13.53],["Arequipa","ARE",-71.54,-16.41]]},
+ {slug:"portugal",nome:"Portugal",status:"ok",parceira:"Universidade parceira (a confirmar)",periodo:"2025",
+  munis:[["Lisboa","LX",-9.14,38.72],["Porto","PO",-8.61,41.15],["Coimbra","CB",-8.43,40.21]]},
+ {slug:"sao-tome",nome:"São Tomé e Príncipe",status:"ok",parceira:"Universidade parceira (a confirmar)",periodo:"2025",
+  munis:[["São Tomé","AG",6.73,0.34],["Santo Amaro","LO",6.64,0.39]]},
+];
+const PENDING=5; // países ainda não listados no protótipo
+// gera números estáveis de exemplo
+function rng(seed){let s=0;for(const c of seed)s=(s*31+c.charCodeAt(0))>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296)}
+COUNTRIES.forEach(c=>{const r=rng(c.slug);c.munis=c.munis.map(([n,uf,lon,lat])=>({n,uf,lon,lat,cats:CATS.map((_,i)=>Math.round(r()*(i===5?3:i===4?4:9))+(i<2?3:1))}));
+  c.cats=CATS.map((_,i)=>c.munis.reduce((a,m)=>a+m.cats[i],0));c.total=c.cats.reduce((a,b)=>a+b,0)});
+const QUOTES={default:[
+  ["As pessoas chegam com o que viram no celular e a gente precisa ter onde buscar uma resposta confiável.","Enfermeiro(a)"],
+  ["Quando o site oficial demora a atualizar, o grupo de mensagens ocupa esse lugar.","Agente comunitário(a)"],
+  ["Ter material pronto para entregar ao paciente faz diferença na consulta.","Médico(a)"]]};
+const PUBS=[
+  ["2027","Relatório","Relatório final de pesquisa: Estudos Comparados","Laboratório ECoS · Editora","Em preparação"],
+  ["2027","Livro","Livro de relatos de experiência: 13 países, 13 capítulos","Lançamento no evento sobre desinformação, jun/2027","Em preparação"],
+  ["2027","Artigo","Qualidade da informação em saúde nos sites oficiais de 13 países","Autoria por país e tema a definir","Em preparação"],
+  ["2027","Cartilha","Letramento informacional para profissionais da APS (PT, ES, EN)","Apêndice do relatório","Em preparação"],
+];
+const TEAM=[["Coordenação","Laboratório ECoS · UnB"],["Ambiente virtual","Gustavo, Maria Paula e André"],["Chatbot","Equipe do chatbot"],["Cartilha","Equipe da cartilha"],["Pesquisadores de campo","Um grupo por país"],["Financiamento","Ministério da Saúde, CNPq, OPAS/Decit"]];
+
+/* ======== UTIL ======== */
+const $=s=>document.querySelector(s);
+const fmt=n=>n.toLocaleString("pt-BR");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const bySlug=Object.fromEntries(COUNTRIES.map(c=>[c.slug,c]));
+const TOT={paises:COUNTRIES.length+PENDING,munis:COUNTRIES.reduce((a,c)=>a+c.munis.length,0),ent:COUNTRIES.reduce((a,c)=>a+c.total,0)};
+let MAP=null;
+fetch("data/mapa.json").then(r=>r.json()).then(j=>{MAP=j;render()}).catch(()=>{MAP={failed:true};render()});
+function proj(lon,lat){const p=MAP.proj,l=lat*Math.PI/180,L=lon*Math.PI/180,l2=l*l,l4=l2*l2;
+  const x=L*(0.8707-0.131979*l2+l4*(-0.013791+l4*(0.003971*l2-0.001529*l4)));
+  const y=l*(1.007226+l2*(0.015085+l4*(-0.044475+0.028874*l2-0.005916*l4)));
+  return [(x-p.x0)*p.k,(p.y0-y)*p.k]}
+
+function mapSVG({sel=null,dots=false,id="m"}={}){
+  if(!MAP) return `<div class="ph" style="aspect-ratio:1000/872">carregando mapa…</div>`;
+  if(MAP.failed) return `<div class="ph" style="aspect-ratio:1000/872">mapa indisponível</div>`;
+  let vb=`0 0 ${MAP.w} ${MAP.h}`;
+  if(sel){const c=bySlug[sel];const pts=c.munis.map(m=>proj(m.lon,m.lat));const cx=pts.reduce((a,p)=>a+p[0],0)/pts.length,cy=pts.reduce((a,p)=>a+p[1],0)/pts.length;
+    const span=Math.max(160,...pts.map(p=>Math.abs(p[0]-cx)*2.6),...pts.map(p=>Math.abs(p[1]-cy)*2.6));vb=`${(cx-span/2).toFixed(0)} ${(cy-span*0.4).toFixed(0)} ${span.toFixed(0)} ${(span*0.8).toFixed(0)}`}
+  const ctry=COUNTRIES.map(c=>`<path class="ctry${c.slug===sel?" sel":""}" d="${MAP.c[c.slug]}" data-slug="${c.slug}" tabindex="${sel?-1:0}" role="link" aria-label="${esc(c.nome)}: ${c.total} entrevistas"></path>`).join("");
+  const stp=sel?"":(()=>{const [x,y]=proj(6.6,0.3);return `<circle class="stp" cx="${x}" cy="${y}" r="9" data-slug="sao-tome"></circle>`})();
+  const SC=sel?Math.max(.25,parseFloat(vb.split(" ")[2])/1000):1;
+  const d=dots?bySlug[sel].munis.map(m=>{const[x,y]=proj(m.lon,m.lat);const t=m.cats.reduce((a,b)=>a+b,0);return `<circle class="dot" cx="${x}" cy="${y}" r="${((3+Math.sqrt(t)*0.9)*SC).toFixed(1)}"><title>${esc(m.n)}: ${t} entrevistas</title></circle>`}).join(""):"";
+  return `<svg id="${id}" viewBox="${vb}" role="img" aria-label="Mapa dos países do estudo"><path class="bgland" d="${MAP.bg}"></path>${ctry}${stp}${d}</svg>`;
+}
+function wireMap(box){
+  const tip=box.querySelector(".maptip");
+  box.querySelectorAll("[data-slug]").forEach(el=>{
+    const c=bySlug[el.dataset.slug];
+    el.addEventListener("click",()=>location.hash="pais-"+c.slug);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter")location.hash="pais-"+c.slug});
+    el.addEventListener("mousemove",e=>{if(!tip)return;const r=box.getBoundingClientRect();tip.hidden=false;tip.style.left=(e.clientX-r.left)+"px";tip.style.top=(e.clientY-r.top)+"px";tip.textContent=`${c.nome} · ${fmt(c.total)} entrevistas · ${c.munis.length} municípios`});
+    el.addEventListener("mouseleave",()=>{if(tip)tip.hidden=true});
+  });
+}
+function countryCards(){
+  return `<div class="cgrid">${COUNTRIES.map(c=>`<a class="ccard" href="#pais-${c.slug}"><div class="row"><strong>${esc(c.nome)}</strong><span class="status ${c.status}">${c.status==="ok"?"Concluído":"Em coleta"}</span></div><small class="mono">${fmt(c.total)} entrevistas · ${c.munis.length} municípios</small></a>`).join("")}
+  ${Array.from({length:PENDING},(_,i)=>`<div class="ccard pending"><div class="row"><strong>País ${9+i}</strong></div><small>a confirmar na planilha</small></div>`).join("")}</div>`;
+}
+
+/* ======== VIEWS ======== */
+const V={};
+V.inicio=()=>`<div class="view">
+  <section class="hero">
+    <div class="hero-text">
+      <span class="eyebrow">Pesquisa multicêntrica · 13 países</span>
+      <h1>Como profissionais da Atenção Primária encontram informação confiável em saúde</h1>
+      <p>O Estudos Comparados ouviu médicos, enfermeiros, agentes comunitários e gestores da APS em 13 países para entender a qualidade da informação que chega a eles. Onde falta boa informação, a desinformação ocupa o espaço.</p>
+      <div class="stats"><div class="stat"><span class="n">${TOT.paises}</span><span class="l">países</span></div><div class="stat"><span class="n">${TOT.munis}</span><span class="l">municípios (exemplo)</span></div><div class="stat"><span class="n">${fmt(TOT.ent)}</span><span class="l">entrevistas (exemplo)</span></div></div>
+      <div class="btns"><a class="btn primary" href="#mapa">Explorar o mapa</a><a class="btn" href="#comparativo">Comparar países</a></div>
+    </div>
+    <div class="mapbox" id="mb">${mapSVG()}<div class="maptip" hidden></div>
+      <div class="maplegend"><span><i style="background:var(--accent)"></i>País no estudo (clique para abrir)</span><span><i style="background:var(--land)"></i>Fora do estudo</span></div></div>
+  </section>
+  <section class="section-head"><span class="eyebrow">Países</span><h2>Onde a pesquisa aconteceu</h2></section>
+  ${countryCards()}
+  <section class="cards3">
+    <div class="panel"><span class="eyebrow">Produto</span><h3>Vídeo do projeto</h3><div class="ph" style="aspect-ratio:16/9">vídeo da produtora · em produção</div></div>
+    <div class="panel"><span class="eyebrow">Produto</span><h3>Livro de relatos</h3><p class="note">Treze capítulos, um por país, escritos por quem viajou. Lançamento em junho de 2027.</p></div>
+    <div class="panel"><span class="eyebrow">Produto</span><h3>Cartilha e chatbot</h3><p class="note">Letramento informacional para profissionais da APS, em português, espanhol e inglês.</p><a href="#materiais">Ver materiais</a></div>
+  </section></div>`;
+
+V.mapa=()=>`<div class="view">
+  <div class="section-head"><span class="eyebrow">Mapa</span><h2>Os países do estudo</h2><p class="note">Clique num país para ver entrevistas por município e categoria profissional. São Tomé e Príncipe está marcado com um círculo por ser pequeno na escala do mapa.</p></div>
+  <div class="mapbox" id="mb">${mapSVG()}<div class="maptip" hidden></div></div>
+  <div class="tablewrap"><table><thead><tr><th>País</th><th>Situação</th><th class="num">Municípios</th><th class="num">Entrevistas</th></tr></thead><tbody>
+  ${COUNTRIES.map(c=>`<tr><td><a href="#pais-${c.slug}">${esc(c.nome)}</a></td><td><span class="status ${c.status}">${c.status==="ok"?"Concluído":"Em coleta"}</span></td><td class="num">${c.munis.length}</td><td class="num">${fmt(c.total)}</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+
+V.pais=slug=>{const c=bySlug[slug];if(!c)return V.inicio();const max=Math.max(...c.cats);
+ return `<div class="view">
+  <div class="crumbs"><a href="#mapa">Mapa</a> / ${esc(c.nome)}</div>
+  <section class="chead">
+    <div class="meta"><span class="eyebrow">País do estudo</span><h1>${esc(c.nome)}</h1>
+      <p class="note">Resumo da coleta no país, escrito pela equipe que viajou (2 a 4 frases). Aqui entra o texto da aba “País” da planilha.</p>
+      <dl class="facts"><dt>Situação</dt><dd><span class="status ${c.status}">${c.status==="ok"?"Coleta concluída":"Coleta em andamento"}</span></dd><dt>Período</dt><dd>${esc(c.periodo)}</dd><dt>Parceria</dt><dd>${esc(c.parceira)}</dd></dl>
+      <div class="stats"><div class="stat"><span class="n">${fmt(c.total)}</span><span class="l">entrevistas</span></div><div class="stat"><span class="n">${c.munis.length}</span><span class="l">municípios</span></div><div class="stat"><span class="n">${c.cats.filter(x=>x>0).length}</span><span class="l">categorias</span></div></div>
+    </div>
+    <div class="mapbox minimap" id="mb">${mapSVG({sel:slug,dots:true,id:"mm"})}</div>
+  </section>
+  <section class="two">
+    <div class="panel"><h3>Entrevistas por categoria profissional</h3><div class="bars">
+      ${CATS.map((k,i)=>`<div class="bar"><span>${k}</span><span class="track"><span class="fill" style="display:block;width:${(c.cats[i]/max*100).toFixed(1)}%"></span></span><span class="v">${c.cats[i]}</span></div>`).join("")}
+    </div></div>
+    <div class="panel"><h3>Entrevistas por município</h3><div class="tablewrap"><table><thead><tr><th>Município</th><th>Região</th><th class="num">Entrevistas</th></tr></thead><tbody>
+      ${c.munis.map(m=>`<tr><td>${esc(m.n)}</td><td>${esc(m.uf)}</td><td class="num">${m.cats.reduce((a,b)=>a+b,0)}</td></tr>`).join("")}
+    </tbody></table></div><p class="note">Municípios com menos de 3 entrevistas numa categoria aparecem agrupados no site real, para ninguém ser identificado.</p></div>
+  </section>
+  <section class="panel"><h3>O que ouvimos</h3><p class="note">No máximo 3 trechos curtos por país, anonimizados e aprovados pela coordenação. Os trechos abaixo são fictícios.</p>
+    <div class="quotes">${QUOTES.default.map(([q,cat])=>`<blockquote><p>“${esc(q)}”</p><cite>${esc(cat)} · ${esc(c.nome)}</cite></blockquote>`).join("")}</div></section>
+  <section class="panel"><h3>Registros de campo</h3><div class="gallery">
+    ${c.munis.slice(0,4).map((m,i)=>`<figure><div class="ph">foto ${i+1}</div><figcaption>Equipe em ${esc(m.n)}<small>Legenda e crédito vêm da aba “Mídia”</small></figcaption></figure>`).join("")}
+  </div></section></div>`};
+
+V.comparativo=()=>`<div class="view">
+  <div class="section-head"><span class="eyebrow">Comparativo</span><h2>Entrevistas por país e categoria</h2><p class="note">Apenas dados descritivos até a publicação dos artigos. Análises comparativas entram depois.</p></div>
+  <div class="filters"><label class="field" for="f-cat">Categoria profissional<select id="f-cat"><option value="all">Todas</option>${CATS.map((k,i)=>`<option value="${i}">${k}</option>`).join("")}</select></label>
+    <label class="field" for="f-sort">Ordenar<select id="f-sort"><option value="total">Mais entrevistas primeiro</option><option value="nome">Nome do país</option></select></label></div>
+  <div class="panel"><div class="legend" id="cmp-legend"></div><div class="bars" id="cmp"></div></div></div>`;
+function drawCmp(){const cat=$("#f-cat").value,sort=$("#f-sort").value;
+  const rows=COUNTRIES.map(c=>({c,v:cat==="all"?c.total:c.cats[+cat]}));
+  rows.sort(sort==="nome"?(a,b)=>a.c.nome.localeCompare(b.c.nome):(a,b)=>b.v-a.v);
+  const max=Math.max(...rows.map(r=>r.v));
+  $("#cmp-legend").innerHTML=cat==="all"?CATS.map((k,i)=>`<span><i style="background:${CAT_COLORS[i]}"></i>${k}</span>`).join(""):`<span><i style="background:${CAT_COLORS[+cat]}"></i>${CATS[+cat]}</span>`;
+  $("#cmp").innerHTML=rows.map(({c,v})=>`<div class="bar"><a href="#pais-${c.slug}">${esc(c.nome)}</a><span class="stack" style="width:${(v/max*100).toFixed(1)}%">${cat==="all"?c.cats.map((x,i)=>`<span style="width:${(x/c.total*100).toFixed(2)}%;background:${CAT_COLORS[i]}" title="${CATS[i]}: ${x}"></span>`).join(""):`<span style="width:100%;background:${CAT_COLORS[+cat]}"></span>`}</span><span class="v">${v}</span></div>`).join("");}
+
+V.publicacoes=()=>`<div class="view"><div class="section-head"><span class="eyebrow">Publicações</span><h2>Produção do projeto</h2><p class="note">Só entram aqui itens publicados ou aceitos. Os itens abaixo mostram o formato.</p></div>
+  <div class="publist">${PUBS.map(([a,t,ti,v,s])=>`<div class="pub"><span class="mono">${a} · ${t}</span><div><span class="t">${esc(ti)}</span><small>${esc(v)}</small></div><span class="status run">${s}</span></div>`).join("")}</div></div>`;
+
+V.galeria=()=>`<div class="view"><div class="section-head"><span class="eyebrow">Galeria</span><h2>Registros das viagens</h2><p class="note">Fotos com legenda, crédito e autorização de imagem. Filtradas por país.</p></div>
+  <div class="gallery">${COUNTRIES.flatMap(c=>c.munis.slice(0,2).map(m=>`<figure><div class="ph">${esc(c.nome)}</div><figcaption>${esc(m.n)}<small>${esc(c.nome)} · crédito da equipe</small></figcaption></figure>`)).join("")}</div></div>`;
+
+V.materiais=()=>`<div class="view"><div class="section-head"><span class="eyebrow">Materiais educativos</span><h2>Para profissionais da Atenção Primária</h2></div>
+  <div class="cards3">
+   <div class="panel"><span class="eyebrow">Cartilha · PT ES EN</span><h3>Como reconhecer e enfrentar a desinformação em saúde</h3><p class="note">Onde buscar informação confiável, como conversar com o paciente, que fontes oficiais usar.</p><span class="status run" style="align-self:flex-start">Em produção</span></div>
+   <div class="panel"><span class="eyebrow">Chatbot</span><h3>Tire uma dúvida</h3><div class="chat"><div class="msg u">Vi que vacina X causa Y. É verdade?</div><div class="msg b">Não há evidência disso. Veja a orientação oficial do Ministério da Saúde: [link para fonte oficial].</div></div><p class="note">Respostas com links para fontes oficiais. Em desenvolvimento.</p></div>
+   <div class="panel"><span class="eyebrow">Materiais dos países</span><h3>Cartilhas e cartazes trazidos do campo</h3><p class="note">Fotos dos materiais educativos coletados em cada país, inclusive em braile.</p></div>
+  </div></div>`;
+
+V.equipe=()=>`<div class="view"><div class="section-head"><span class="eyebrow">Equipe e parceiros</span><h2>Quem faz o Estudos Comparados</h2></div>
+  <div class="people">${TEAM.map(([r,n])=>`<div class="panel"><span class="eyebrow">${esc(r)}</span><h3>${esc(n)}</h3></div>`).join("")}</div>
+  <div class="panel"><h3>Universidades parceiras</h3><div class="gallery">${COUNTRIES.map(c=>`<figure><div class="ph" style="aspect-ratio:3/1">logo · ${esc(c.nome)}</div></figure>`).join("")}</div></div></div>`;
+
+/* ======== ROTEAMENTO ======== */
+function render(){
+  const h=(location.hash||"#inicio").slice(1);
+  let key=h.startsWith("pais-")?"pais":(V[h]?h:"inicio");
+  $("#app").innerHTML=key==="pais"?V.pais(h.slice(5)):V[key]();
+  document.querySelectorAll("nav.main a").forEach(a=>a.setAttribute("aria-current",a.getAttribute("href")==="#"+(key==="pais"?"mapa":key)?"page":"false"));
+  const mb=$("#mb");if(mb&&key!=="pais")wireMap(mb);
+  if(key==="comparativo"){drawCmp();$("#f-cat").addEventListener("change",drawCmp);$("#f-sort").addEventListener("change",drawCmp)}
+}
+addEventListener("hashchange",()=>{render();scrollTo(0,0)});
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{if(b.id!=="lang-pt"){b.title="Tradução em breve";b.animate?.([{opacity:1},{opacity:.4},{opacity:1}],{duration:400})}}));
+render();
+</script>
