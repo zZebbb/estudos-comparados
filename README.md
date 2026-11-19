@@ -21,3 +21,10 @@ e abra http://localhost:8000 (o mapa é carregado por `fetch`, então abrir o ar
 ## Regra de dados
 
 Antes da publicação dos artigos, só dados descritivos e anonimizados: número de entrevistas por país, município e categoria profissional, e no máximo 3 trechos curtos aprovados por país.
+
+## Versão 2 (branch `v2-globo-interativo`)
+
+- `index.html`: a história contada pela rolagem. Um globo 3D (Three.js r128, pelo cdnjs) fica ao fundo e cada passo da rolagem move a câmera: abertura, a rede saindo de Brasília, e um capítulo por país (chegada, onde, quem, uma voz), terminando na comparação lado a lado.
+- `dados.html`: a versão 1, agora como a parte de consulta (mapa, páginas por país, comparativo, publicações).
+- `data/globo.json`: contornos em longitude/latitude para desenhar a textura do globo.
+- Botão "Menos movimento" desliga o giro e as animações; o site também respeita a preferência do sistema. Sem WebGL, os textos aparecem sem o globo.
