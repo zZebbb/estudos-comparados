@@ -5,15 +5,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: globo 3D fixo ao fundo; à frente, uma coluna de "passos" de altura de tela. Cada passo que entra na tela move a câmera e troca o painel de dados. Visual escuro de propósito (noite sobre o globo), tema único. */
+/* Layout: globo de pontos fixo ao fundo; à frente, uma coluna de "passos" de altura de tela. Cada passo que entra na tela move a câmera e troca o painel de dados.
+   Visual claro, tema único: fundo quase branco, pontos cinza e destaques em violeta (referência enviada pelo Gustavo em 25/11/2026). */
 :root{
-  --night:#07131A; --deep:#0C1F28; --panel:rgba(10,28,36,.78); --ink:#EAF2F0; --muted:#8FA7AA; --line:rgba(234,242,240,.14);
-  --accent:#3CC4A2; --sun:#F2B544; --land:#1C3640;
-  --c1:#3CC4A2; --c2:#5AB4E6; --c3:#F2B544; --c4:#B08CF0; --c5:#F07A72; --c6:#7E9295;
+  --night:#F7F6FB; --deep:#EFEDF6; --panel:rgba(255,255,255,.94); --ink:#1B1828; --muted:#5D5970; --line:rgba(27,24,40,.12);
+  --accent:#8B5CF6; --sun:#6D28D9; --land:#9A98A6;
+  --c1:#7C3AED; --c2:#3B82F6; --c3:#F59E0B; --c4:#EC4899; --c5:#10B981; --c6:#A1A1AA;
   --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-  color-scheme:dark;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -29,17 +30,17 @@ p{margin:0}
 /* palco */
 #stage{position:fixed;inset:0;z-index:0}
 #stage canvas{display:block;width:100%;height:100%}
-.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 70% 50%,transparent 40%,var(--night) 100%)}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 70% 50%,transparent 55%,var(--night) 100%)}
 
 /* topo */
 .bar{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:20;display:flex;align-items:center;gap:16px;
   padding:14px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));
-  background:linear-gradient(var(--night),rgba(7,19,26,0))}
+  background:linear-gradient(var(--night),rgba(247,246,251,0))}
 .bar .brand{font-family:var(--f-display);font-weight:600;font-size:17px;color:var(--ink);text-decoration:none;margin-right:auto}
 .bar .brand small{display:block;font:400 11px var(--f-mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
 .bar a.link{color:var(--muted);text-decoration:none;font-size:14px}
 .bar a.link:hover{color:var(--ink)}
-.tag{font:500 10.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;background:var(--sun);color:#1b1404;padding:3px 8px;border-radius:999px}
+.tag{font:500 10.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;background:var(--sun);color:#fff;padding:3px 8px;border-radius:999px}
 .toggle{font:500 12px var(--f-mono);background:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
 .toggle[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
 
@@ -55,12 +56,15 @@ p{margin:0}
 /* passos */
 main{position:relative;z-index:10}
 .step{min-height:100vh;display:flex;align-items:center;padding:96px max(16px,env(safe-area-inset-right,0px)) 96px max(16px,env(safe-area-inset-left,0px))}
-.card{max-width:520px;width:100%;margin-left:max(0px,calc((100vw - 1180px)/2));display:flex;flex-direction:column;gap:18px;
-  opacity:.6;transform:translateY(16px);transition:opacity 1s ease,transform 1s ease}
-.step.on .card{opacity:1;transform:none}
-.card.glass{background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px;padding:28px}
-.big{font-size:clamp(44px,8vw,104px);font-weight:800;letter-spacing:-.02em}
-.huge{font-size:clamp(56px,11vw,150px);font-weight:800;letter-spacing:-.03em}
+.card{max-width:520px;width:100%;margin-left:max(0px,calc((100vw - 1180px)/2));display:flex;flex-direction:column;gap:18px}
+/* Todo texto fica sobre um painel opaco, para não perder leitura sobre o globo. */
+.card,.card.glass{background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 18px 48px rgba(46,16,101,.08)}
+/* Entrada: os itens do painel sobem um a um, no mesmo ritmo do giro do globo (~1,4 s). Depois de entrar, ficam 100% opacos. */
+.card>*{opacity:0;transform:translateY(14px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.step.seen .card>*{opacity:1;transform:none}
+.card>:nth-child(2){transition-delay:.12s}.card>:nth-child(3){transition-delay:.24s}.card>:nth-child(4){transition-delay:.36s}.card>:nth-child(5){transition-delay:.48s}.card>:nth-child(n+6){transition-delay:.6s}
+.big{font-size:clamp(38px,5vw,68px);font-weight:800;letter-spacing:-.02em}
+.huge{font-size:clamp(44px,6.2vw,86px);font-weight:800;letter-spacing:-.03em}
 .lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink);max-width:46ch}
 .sub{color:var(--muted);max-width:52ch}
 .num{font-family:var(--f-display);font-weight:800;font-size:clamp(56px,9vw,120px);line-height:.9;font-variant-numeric:tabular-nums;color:var(--sun)}
@@ -111,15 +115,15 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 .tint{position:fixed;inset:0;z-index:0;pointer-events:none;background:var(--night);transition:background-color 1.2s ease}
 .scene{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 1s ease;background-size:cover;background-position:center}
 .scene.on{opacity:1}
-.scene span{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:16px;font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:rgba(234,242,240,.7);background:rgba(7,19,26,.55);padding:5px 9px;border-radius:6px}
+.scene span{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:16px;font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(255,255,255,.8);padding:5px 9px;border-radius:6px}
 #stage{z-index:1}.vignette{z-index:2}
-.flag{width:54px;height:36px;border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,.25);flex:none}
+.flag{width:54px;height:36px;border-radius:4px;box-shadow:0 0 0 1px rgba(27,24,40,.15);flex:none}
 .flag.sm{width:21px;height:14px;border-radius:2px}
 .ctitle{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
 .photos figure{margin:0;display:flex;flex-direction:column;gap:4px}
 .photos .ph{aspect-ratio:4/3;border-radius:8px;border:1px dashed var(--line);display:grid;place-items:center;text-align:center;padding:6px;font:500 10.5px var(--f-mono);color:var(--muted);
-  background:repeating-linear-gradient(135deg,rgba(255,255,255,.04) 0 8px,transparent 8px 16px)}
+  background:repeating-linear-gradient(135deg,rgba(27,24,40,.04) 0 8px,transparent 8px 16px)}
 .photos figcaption{font-size:12px;color:var(--muted)}
 
 /* carregamento */
@@ -130,7 +134,7 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 #loader .bar2 i{display:block;height:100%;width:0;background:var(--sun);transition:width .4s}
 
 .nogl #stage,.nogl .vignette{display:none}
-.nogl .card{opacity:1;transform:none}
+.nogl .card>*,.calm .card>*{opacity:1;transform:none}
 
 @media (max-width:760px){
   .chapters{display:none}
@@ -147,10 +151,7 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 }
 .calm *{transition:none!important;animation:none!important}
 .calm html{scroll-behavior:auto}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
-.gcursor{position:fixed;left:0;top:0;z-index:70;pointer-events:none;border-radius:50%;background:#fff;border:0 solid rgba(255,255,255,.75);opacity:0;transition:opacity .2s;will-change:transform,width,height}
-.gcursor.on{opacity:1}
-@media (pointer:fine){html.gcur,html.gcur body,html.gcur .step{cursor:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}.card>*{opacity:1;transform:none}}
 </style>
 
 <div id="loader" role="status"><b>Estudos Comparados</b><div class="bar2"><i id="lbar"></i></div><span class="eyebrow">carregando o globo</span></div>
@@ -290,25 +291,25 @@ function countUp(el){const to=+el.dataset.count;if(calm){el.textContent=fmt(to);
 const rootS=document.documentElement.style,tintEl=document.getElementById("tint"),sceneEl=document.getElementById("scene"),sceneCap=document.getElementById("scene-cap");
 function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`}
 function applyTheme(s){const t=s.country&&THEME[s.country];
-  if(t){rootS.setProperty("--sun",t.accent);tintEl.style.backgroundImage=`radial-gradient(90% 80% at 70% 50%, ${hexA(t.tint,.45)}, var(--night) 75%)`}
-  else{rootS.removeProperty("--sun");tintEl.style.backgroundImage="none"}
+  if(t){tintEl.style.backgroundImage=`radial-gradient(90% 80% at 70% 50%, ${hexA(t.tint,.07)}, var(--night) 75%)`}
+  else{tintEl.style.backgroundImage="none"}
   // paisagem: só no passo de chegada de cada país (por enquanto um degradê no lugar da foto)
   const arrive=t&&s.id===s.country;
-  if(arrive){sceneEl.style.backgroundImage=`linear-gradient(180deg, rgba(7,19,26,.2), var(--night) 92%), linear-gradient(120deg, ${hexA(t.tint,.9)}, ${hexA(t.accent,.35)} 55%, ${hexA(t.alt,.25)})`;
+  if(arrive){sceneEl.style.backgroundImage=`linear-gradient(180deg, rgba(247,246,251,.35), var(--night) 92%), linear-gradient(120deg, ${hexA(t.tint,.14)}, ${hexA(t.accent,.08)} 55%, ${hexA(t.alt,.06)})`;
     sceneCap.textContent=`Espaço para foto de paisagem · ${t.paisagem}`}
   sceneEl.classList.toggle("on",!!arrive);
 }
 let current=-1;
 function activate(i){if(i===current)return;current=i;const s=STEPS[i];
   document.querySelectorAll(".step").forEach(el=>el.classList.toggle("on",+el.dataset.i===i));
-  const el=document.querySelector(`.step[data-i="${i}"]`);
+  const el=document.querySelector(`.step[data-i="${i}"]`);el.classList.add("seen");
   el.querySelectorAll("[data-count]").forEach(countUp);
   el.querySelectorAll(".mrow i[data-w], .stack[data-w]").forEach(b=>b.style.width=b.dataset.w+"%");
   applyTheme(s);
   const ch=s.country||s.id;document.querySelectorAll(".chapters a").forEach(a=>a.classList.toggle("on",a.dataset.ch===ch));
   if(G)G.go(s.view);
 }
-const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)activate(+e.target.dataset.i)})},{rootMargin:"-30% 0px -30% 0px"});
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)activate(+e.target.dataset.i)})},{rootMargin:"-35% 0px -35% 0px"});
 document.querySelectorAll(".step").forEach(el=>io.observe(el));
 
 /* ================= GLOBO DE PONTOS ================= */
@@ -333,7 +334,6 @@ function makeGlobe(DOTS){
   let W=0,H=0,dpr=1;
   function resize(){dpr=Math.min(devicePixelRatio||1,innerWidth<760?1.5:2);W=host.clientWidth||innerWidth;H=host.clientHeight||innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
   addEventListener("resize",resize);resize();
-  const sr=rng("estrelas"),stars=[];for(let i=0;i<160;i++)stars.push([sr(),sr(),.3+sr()*.9,.15+sr()*.4]);
 
   // arcos Brasília -> cada país (grande círculo levemente elevado)
   const v3=(lat,lon)=>[Math.cos(lat*D2R)*Math.cos(lon*D2R),Math.cos(lat*D2R)*Math.sin(lon*D2R),Math.sin(lat*D2R)];
@@ -342,21 +342,26 @@ function makeGlobe(DOTS){
     return {pts,p:0}});
   const mk={};COUNTRIES.forEach(c=>mk[c.slug]=0);
 
-  const st={lon:-30,lat:8,dist:3.4},tg={...st,spin:true,arcs:false,hl:null,dots:null};let spinOff=0;
+  const st={lon:-30,lat:8,dist:3.4},tg={...st,spin:true,arcs:false,hl:null,dots:null};let spinOff=0,tw=null;
+  const DUR=1400,ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
   const shift=()=>innerWidth>=760?.55:0,mob=()=>innerWidth<760?1.35:1;
-  function go(v,instant){Object.assign(tg,{spin:!!v.spin,arcs:!!v.arcs,hl:v.hl||null,dots:v.dots||null,all:!!v.all,lon:v.lon,lat:v.lat,dist:v.dist});
-    if(!v.spin)spinOff=0;if(instant||calm){st.lon=v.lon;st.lat=v.lat;st.dist=v.dist}}
   const wrap=a=>((a+540)%360)-180;
+  function go(v,instant){Object.assign(tg,{spin:!!v.spin,arcs:!!v.arcs,hl:v.hl||null,dots:v.dots||null,all:!!v.all,lon:v.lon,lat:v.lat,dist:v.dist});
+    st.lon-=spinOff;spinOff=0; // incorpora o giro livre antes de partir, sem salto
+    if(instant||calm){st.lon=v.lon;st.lat=v.lat;st.dist=v.dist;tw=null;return}
+    const dLon=wrap(v.lon-st.lon),far=Math.hypot(dLon,v.lat-st.lat);
+    tw={t0:performance.now(),f:{lon:st.lon,lat:st.lat,dist:st.dist},d:{lon:dLon,lat:v.lat-st.lat,dist:v.dist-st.dist},lift:Math.min(.7,far/110),dur:DUR+Math.min(600,far*6)}}
 
   // arrastar para girar, com inércia, voltando ao enquadramento do capítulo
   let drag=null,dx=0,dy=0,vx=0;cv.style.touchAction="pan-y";host.style.pointerEvents="auto";
   const free=e=>e.target===cv||!(e.target.closest&&e.target.closest(".card,a,button,input,select,textarea,header,nav,.chapters,.bar,.ap-hud,footer"));
   const onGlobe=e=>Math.hypot(e.clientX-view.cx,e.clientY-view.cy)<view.R;
   addEventListener("pointerdown",e=>{if(e.button===0&&free(e)&&onGlobe(e)){drag={x:e.clientX,y:e.clientY,dx,dy};vx=0;e.preventDefault()}});
+  addEventListener("pointermove",e=>{if(!drag)host.style.cursor=free(e)&&onGlobe(e)?"grab":""});
   addEventListener("pointermove",e=>{if(drag){const ndx=drag.dx+(e.clientX-drag.x)*.25;vx=ndx-dx;dx=ndx;dy=Math.max(-50,Math.min(50,drag.dy+(e.clientY-drag.y)*.15))}});
   addEventListener("pointerup",()=>{drag=null});addEventListener("pointercancel",()=>{drag=null});
 
-  // geometria atual, usada também pelo cursor magnético
+  // geometria atual (centro e raio do globo na tela)
   const view={cx:0,cy:0,R:0};
   let lam0=0,phi0=0,cp0=1,sp0=0;
   function proj(cl,sl,lo,h){const dl=lo-lam0,cd=Math.cos(dl);return [view.cx+h*cl*Math.sin(dl)*view.R,view.cy-h*(cp0*sl-sp0*cl*cd)*view.R,sp0*sl+cp0*cl*cd]}
@@ -364,25 +369,24 @@ function makeGlobe(DOTS){
 
   let last=performance.now();
   function frame(t){const dt=Math.min(.05,(t-last)/1000);last=t;
-    const k=calm?1:1-Math.pow(.0015,dt);
-    if(tg.spin&&!calm)spinOff+=dt*6;
-    st.lon+=wrap(tg.lon-spinOff-st.lon)*k;st.lat+=(tg.lat-st.lat)*k;st.dist+=(tg.dist-st.dist)*k;
+    if(tw){const p=Math.min(1,(t-tw.t0)/tw.dur),e=ease(p);
+      st.lon=tw.f.lon+tw.d.lon*e;st.lat=tw.f.lat+tw.d.lat*e;st.dist=tw.f.dist+tw.d.dist*e+Math.sin(Math.PI*e)*tw.lift;if(p>=1)tw=null}
+    if(tg.spin&&!calm&&!tw)spinOff+=dt*5;
     if(!drag){dx+=vx;vx*=.92;dx*=.96;dy*=.96}
-    const lon=st.lon-dx,lat=Math.max(-70,Math.min(70,st.lat+dy));
+    const lon=st.lon-spinOff-dx,lat=Math.max(-70,Math.min(70,st.lat+dy));
     lam0=lon*D2R;phi0=lat*D2R;cp0=Math.cos(phi0);sp0=Math.sin(phi0);
     const z=st.dist*mob(),unit=(H/2)/(.364*z);
     view.R=(H/2)/.364/Math.sqrt(Math.max(.05,z*z-1));
-    view.cx=W/2+shift()*Math.max(.15,(st.dist-1)/2.4)*unit+(window.__gox||0);
-    view.cy=H/2-(innerWidth<760?.42*(st.dist/2.4):0)*unit+(window.__goy||0);
+    view.cx=W/2+shift()*Math.max(.15,(st.dist-1)/2.4)*unit;
+    view.cy=H/2-(innerWidth<760?.42*(st.dist/2.4):0)*unit;
     const R=view.R,cx=view.cx,cy=view.cy;
     ctx.clearRect(0,0,W,H);
-    // estrelas
-    stars.forEach(s=>{ctx.fillStyle=`rgba(200,215,218,${s[3]})`;ctx.fillRect(s[0]*W,s[1]*H,s[2],s[2])});
-    // halo
-    const hg=ctx.createRadialGradient(cx,cy,R*.98,cx,cy,R*1.22);hg.addColorStop(0,`rgba(${rgb(ACC)},.22)`);hg.addColorStop(1,`rgba(${rgb(ACC)},0)`);
-    ctx.fillStyle=hg;ctx.beginPath();ctx.arc(cx,cy,R*1.22,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="rgba(5,14,20,.55)";ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
-    ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,0.18)";ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+    // halo lilás e esfera clara
+    const hg=ctx.createRadialGradient(cx,cy,R*.96,cx,cy,R*1.2);hg.addColorStop(0,"rgba(139,92,246,.16)");hg.addColorStop(1,"rgba(139,92,246,0)");
+    ctx.fillStyle=hg;ctx.beginPath();ctx.arc(cx,cy,R*1.2,0,Math.PI*2);ctx.fill();
+    const sg=ctx.createRadialGradient(cx-R*.35,cy-R*.4,R*.1,cx,cy,R);sg.addColorStop(0,"#FFFFFF");sg.addColorStop(1,"#F1F0F5");
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=1;ctx.strokeStyle="rgba(27,24,40,.10)";ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
     const DS=Math.max(1.1,R*STEP*D2R*.62),whole=R<Math.min(W,H)*.6;
     const hl=tg.hl,hlc=hl&&THEME[hl]?THEME[hl].accent:SUN;const hlIdx=hl?SL.indexOf(hl)+1:-1;
     for(let pass=whole?0:1;pass<2;pass++)for(let i=0;i<N;i++){
@@ -391,47 +395,29 @@ function makeGlobe(DOTS){
       const x=cx+CL[i]*Math.sin(dl)*R,y=cy-(cp0*SLA[i]-sp0*CL[i]*cd)*R;
       if(x<-20||x>W+20||y<-20||y>H+20)continue;
       const f=FL[i];
-      if(pass===0){ctx.fillStyle=`rgba(255,255,255,${.10+.08*(1+zz)})`;const s=DS*.7;ctx.fillRect(x-s/2,y-s/2,s,s);continue}
-      let a=.35+.6*zz,c="255,255,255";
-      if(f){c=rgb(f===hlIdx?hlc:ACC);a=hl&&f!==hlIdx?.45+.4*zz:.6+.4*zz}else if(hl)a*=.75;
+      if(pass===0){ctx.fillStyle=`rgba(90,88,105,${.05+.04*(1+zz)})`;const s=DS*.7;ctx.fillRect(x-s/2,y-s/2,s,s);continue}
+      let a=.30+.45*zz,c="88,86,102";
+      if(f){c=f===hlIdx?"109,40,217":"167,139,250";a=hl&&f!==hlIdx?.55+.35*zz:.75+.25*zz}else if(hl)a*=.8;
       ctx.fillStyle=`rgba(${c},${a})`;const s=DS*(.75+.25*zz);ctx.fillRect(x-s/2,y-s/2,s,s)}
     // equador
     for(let pass=0;pass<2;pass++){ctx.beginPath();let pen=false;for(let q=0;q<=180;q++){const p=proj(1,0,q*2*D2R,1);const vis=pass?p[2]>=0:p[2]<0;if(vis){pen?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);pen=true}else pen=false}
-      ctx.lineWidth=1;ctx.strokeStyle=pass?"rgba(255,255,255,0.4)":"rgba(255,255,255,0.1)";ctx.stroke()}
+      ctx.lineWidth=1;ctx.strokeStyle=pass?"rgba(27,24,40,.18)":"rgba(27,24,40,.05)";ctx.stroke()}
     // arcos
     ctx.lineCap="round";
     arcs.forEach(a=>{const want=tg.arcs?1:0;a.p+=(want-a.p)*(calm?1:Math.min(1,dt*(want?1.4:3)));const kmax=Math.round(a.p*64);
       for(let q=1;q<=kmax;q++){const A=projV(a.pts[q-1]),B=projV(a.pts[q]);if((A[2]<0&&Math.hypot(A[0]-cx,A[1]-cy)<R)||(B[2]<0&&Math.hypot(B[0]-cx,B[1]-cy)<R))continue;
-        const tt=q/64;ctx.strokeStyle=`rgba(${rgb(SUN)},${.5+.45*tt})`;ctx.lineWidth=Math.max(1,R*(.004+.01*tt*tt));ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(B[0],B[1]);ctx.stroke()}});
+        const tt=q/64;ctx.fillStyle=`rgba(124,58,237,${.45+.5*tt})`;const r=Math.max(.9,R*(.0025+.004*tt));ctx.beginPath();ctx.arc(B[0],B[1],r,0,Math.PI*2);ctx.fill()}});
     // Brasília
     const hb=proj(Math.cos(HUB.lat*D2R),Math.sin(HUB.lat*D2R),HUB.lon*D2R,1.002);
     if(hb[2]>0){ctx.fillStyle=SUN;ctx.beginPath();ctx.arc(hb[0],hb[1],Math.max(2.5,R*.012),0,Math.PI*2);ctx.fill()}
     // municípios: ponto branco e anel pulsando
     COUNTRIES.forEach(c=>{const want=(tg.dots===c.slug||tg.all||tg.hl===c.slug)?1:0;mk[c.slug]+=(want-mk[c.slug])*(calm?1:Math.min(1,dt*4));const kk=mk[c.slug];if(kk<.02)return;
       c.munis.forEach((m,j)=>{const p=proj(Math.cos(m.lat*D2R),Math.sin(m.lat*D2R),m.lon*D2R,1.003);if(p[2]<=0)return;
-        const r=Math.max(1.8,(.0035+Math.sqrt(m.t)*.0011)*R)*kk;ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fill();
+        const r=Math.max(2.2,(.0035+Math.sqrt(m.t)*.0011)*R)*kk;ctx.fillStyle="#6D28D9";ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fill();ctx.stroke();
         if(!calm){const ph=((t/1000+j*.3)%1.6)/1.6;ctx.strokeStyle=`rgba(${rgb(SUN)},${(.9-ph*.9)*kk})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p[0],p[1],r*(1.8+ph*1.6),0,Math.PI*2);ctx.stroke()}})});
     requestAnimationFrame(frame)}
   requestAnimationFrame(frame);
 
-  // cursor magnético (só com mouse): perto do globo, um anel prende nele e o puxa de leve
-  (function(){if(!matchMedia("(pointer: fine)").matches)return;
-    const cur=document.createElement("div");cur.className="gcursor";document.body.appendChild(cur);
-    let mx=-100,my=-100,x=-100,y=-100,w=10,bw=0,fill=1,seen=false,pressed=false,overStage=false,ox=0,oy=0;
-    addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY;overStage=free(e);if(!seen){x=mx;y=my;seen=true}});
-    addEventListener("pointerdown",()=>pressed=true);addEventListener("pointerup",()=>pressed=false);
-    document.addEventListener("mouseleave",()=>{mx=my=-100;overStage=false});
-    const lerp=(a,b,t)=>a+(b-a)*t;
-    (function tick(){const gx=view.cx-ox,gy=view.cy-oy,R=view.R,d=Math.hypot(mx-gx,my-gy);
-      const fits=R<Math.min(W,H)*.5;const stuck=(overStage||drag)&&fits&&(!!drag||d<R*1.12);
-      ox=lerp(ox,stuck?(mx-gx)*.05:0,.15);oy=lerp(oy,stuck?(my-gy)*.05:0,.15);window.__gox=ox;window.__goy=oy;
-      const target=stuck?{x:gx+(mx-gx)*.08,y:gy+(my-gy)*.08,w:R*2.2,b:Math.max(1.2,R*.01)}:null;
-      const tw=target?target.w*(pressed?.94:1):(pressed?7:10);
-      x=lerp(x,target?target.x:mx,target?.18:.35);y=lerp(y,target?target.y:my,target?.18:.35);w=lerp(w,tw,.2);bw=lerp(bw,target?target.b:0,.3);fill=lerp(fill,target?(pressed?.06:0):1,.25);
-      const show=overStage||!!drag;cur.classList.toggle("on",show);document.documentElement.classList.toggle("gcur",show);
-      cur.style.width=cur.style.height=w+"px";cur.style.borderWidth=bw+"px";cur.style.background=`rgba(255,255,255,${fill.toFixed(3)})`;cur.style.transform=`translate(${x-w/2}px,${y-w/2}px)`;
-      requestAnimationFrame(tick)})();
-  })();
   return {go};
 }
 </script>

@@ -62,7 +62,9 @@ As três páginas têm o botão **▶ Apresentar** (ou a tecla **P**). As setas 
 
 ## Globo de pontos
 
-O globo é desenhado em canvas 2D, sem WebGL nem bibliotecas. Pontos quadrados a cada 1,2° de latitude, frente mais clara e verso apagado, países do estudo em verde e o país do capítulo na cor dele. Com mouse, um cursor magnético vira anel ao chegar perto do globo, e dá para arrastar para girar. O botão "Menos movimento" (e a preferência do sistema) desliga o giro e as animações.
+O globo é desenhado em canvas 2D, sem WebGL nem bibliotecas. Visual claro: esfera quase branca, pontos cinza a cada 1,2° de latitude (verso apagado), países do estudo em violeta claro e o país do capítulo em violeta escuro; os arcos saindo de Brasília são pontilhados. Dá para arrastar o globo para girar. O botão "Menos movimento" (e a preferência do sistema) desliga o giro e as animações.
+
+Cores e ritmo ficam em dois lugares do `index.html`: as variáveis `--night`, `--ink`, `--accent`, `--sun` no começo do CSS e os valores RGB dentro de `frame()` (pontos, arcos, municípios). A câmera vai de um capítulo a outro em ~1,4 s com aceleração suave (`DUR` e `ease` em `makeGlobe`), e os itens do painel de texto entram um a um no mesmo ritmo (`.card>*` no CSS). O texto fica sempre sobre um painel branco opaco.
 
 Para regerar os pontos depois de mudar `data/globo.json`:
 
