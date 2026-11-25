@@ -4,7 +4,7 @@ Site do projeto Estudos Comparados (Laboratório ECoS, UnB): um globo com os pa�
 
 **Situação:** protótipo. Números, trechos de entrevista e textos dos países são exemplos fictícios. As fotos são reais, do trabalho de campo da equipe.
 
-Endereço (depois de ligar o GitHub Pages): `https://zzebbb.github.io/estudos-comparados/`
+Endereço: https://zzebbb.github.io/estudos-comparados/ (GitHub Pages, publicado a partir da `main`, pasta raiz)
 
 ## Estrutura
 
