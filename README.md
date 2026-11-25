@@ -41,6 +41,7 @@ Atenção: o site no Pages é público e pode ser indexado por buscadores, mesmo
 
 ## Como as páginas se ligam
 
+- As três páginas têm uma barra fixa no canto inferior esquerdo (`<nav class="sitenav">`) com Globo, Diário de São Tomé e Diário do Peru; a página atual fica em branco. Ao criar um diário novo, acrescente o link nessa barra nas três páginas.
 - Na página inicial, o topo tem links fixos para os diários, e o capítulo de cada país com diário tem o botão "Abrir o diário". A lista fica em `DIARIOS`, no começo do `<script>` do `index.html`.
 - Os diários voltam para o globo com `../../` e apontam um para o outro com `../<pais>/`.
 
@@ -48,7 +49,7 @@ Atenção: o site no Pages é público e pode ser indexado por buscadores, mesmo
 
 1. Copie a pasta `diarios/peru/` (ou `diarios/sao-tome/`) para `diarios/<slug>/`, com o mesmo `slug` usado em `COUNTRIES` no `index.html` (ex.: `colombia`).
 2. Troque as fotos em `diarios/<slug>/fotos/<slug>/` (JPG com no máximo 1600 px no lado maior, qualidade ~82) e os textos.
-3. Acrescente `"<slug>":"diarios/<slug>/"` em `DIARIOS` no `index.html`.
+3. Acrescente `"<slug>":"diarios/<slug>/"` em `DIARIOS` no `index.html` e o link na barra `sitenav` das três páginas.
 
 ## Modo apresentação
 
