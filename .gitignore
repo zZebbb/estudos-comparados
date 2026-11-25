@@ -1,5 +1,5 @@
 .DS_Store
 *.log
 
-# Fotos reais das ações ficam fora do git até a confirmação da autorização de imagem.
-fotos/
+# Pasta de trabalho com fotos originais (fora do git). As fotos publicadas ficam em diarios/<pais>/fotos/.
+/fotos/

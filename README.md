@@ -1,14 +1,27 @@
 # Estudos Comparados · ambiente virtual
 
-Site público do projeto Estudos Comparados (Laboratório ECoS, UnB): mapa dos países, entrevistas por município e categoria profissional, publicações, galeria e materiais educativos.
+Site do projeto Estudos Comparados (Laboratório ECoS, UnB): um globo com os países do estudo, diários de campo por país e uma parte de consulta com mapa, comparativo e publicações.
 
-**Situação:** protótipo. Todos os números, trechos e fotos são exemplos fictícios.
+**Situação:** protótipo. Números, trechos de entrevista e textos dos países são exemplos fictícios. As fotos são reais, do trabalho de campo da equipe.
+
+Endereço (depois de ligar o GitHub Pages): `https://zzebbb.github.io/estudos-comparados/`
 
 ## Estrutura
 
-- `index.html`: o site inteiro (HTML, CSS e JS, sem dependências). Navegação por `#` (`#inicio`, `#mapa`, `#pais-peru`, `#comparativo`, `#publicacoes`, `#galeria`, `#materiais`, `#equipe`).
-- `data/mapa.json`: contornos dos países já projetados (Natural Earth, a partir do pacote `world-atlas`, domínio público).
-- Os dados de exemplo estão no topo do `<script>` em `index.html` (`COUNTRIES`, `PUBS`, `TEAM`). No site real eles virão de um arquivo de dados gerado a partir das planilhas por país.
+| Caminho | O que é |
+|---|---|
+| `index.html` | Página inicial: a história contada pela rolagem, com o globo de pontos ao fundo. Um capítulo por país; os países com diário têm o botão "Abrir o diário". |
+| `dados.html` | Parte de consulta (versão 1): mapa, páginas por país, comparativo, publicações. |
+| `diarios/sao-tome/` | Diário de campo de São Tomé e Príncipe ("cartão-postal × como a informação de saúde circula ali"). Fotos em `fotos/sao-tome/`. |
+| `diarios/peru/` | Diário de campo do Peru (Iquitos): efeito de água, globo de pontos Brasília → Iquitos, "uma gota no rio". Fotos em `fotos/peru/`. |
+| `data/dots.json` | Pontos de terra do globo (latitude, longitude e país do estudo). Gerado por `scripts/gen_dots.py`. |
+| `data/globo.json` | Contornos dos países em longitude/latitude (Natural Earth, domínio público). Fonte para o `gen_dots.py`. |
+| `data/mapa.json` | Contornos já projetados, usados pelo mapa do `dados.html`. |
+| `.nojekyll` | Diz ao GitHub Pages para servir os arquivos como estão. |
+
+Cada página é um único arquivo HTML com CSS e JS dentro. Não há etapa de build. Bibliotecas externas, todas por CDN:
+- fontes do Google Fonts;
+- no diário do Peru: jQuery 3.5.1 e `jquery.ripples` 0.6.3 (efeito de água). O arquivo certo no jsDelivr é `dist/jquery.ripples-min.js`.
 
 ## Ver localmente
 
@@ -16,15 +29,43 @@ Site público do projeto Estudos Comparados (Laboratório ECoS, UnB): mapa dos p
 python3 -m http.server 8000
 ```
 
-e abra http://localhost:8000 (o mapa é carregado por `fetch`, então abrir o arquivo direto pelo navegador não funciona).
+e abra http://localhost:8000. Os dados são carregados por `fetch`, então abrir o arquivo direto pelo navegador não funciona.
 
-## Regra de dados
+## Publicar no GitHub Pages
 
-Antes da publicação dos artigos, só dados descritivos e anonimizados: número de entrevistas por país, município e categoria profissional, e no máximo 3 trechos curtos aprovados por país.
+1. O repositório precisa ser **público** (no plano gratuito, o Pages não funciona em repositório privado). Em **Settings → General → Danger Zone → Change repository visibility → Make public**.
+2. Em **Settings → Pages**: *Source* = **Deploy from a branch**, *Branch* = **main**, pasta **/ (root)**. Salvar.
+3. Em 1 a 2 minutos o site aparece no endereço acima. Cada novo commit na `main` publica de novo sozinho.
 
-## Versão 2 (branch `v2-globo-interativo`)
+Atenção: o site no Pages é público e pode ser indexado por buscadores, mesmo que o repositório volte a ser privado depois (aí o Pages para de funcionar). Para tirar uma foto do ar, apague o arquivo e faça commit; cópias em cache podem levar alguns dias para sumir.
 
-- `index.html`: a história contada pela rolagem. Um globo 3D (Three.js r128, pelo cdnjs) fica ao fundo e cada passo da rolagem move a câmera: abertura, a rede saindo de Brasília, e um capítulo por país (chegada, onde, quem, uma voz), terminando na comparação lado a lado.
-- `dados.html`: a versão 1, agora como a parte de consulta (mapa, páginas por país, comparativo, publicações).
-- `data/globo.json`: contornos em longitude/latitude para desenhar a textura do globo.
-- Botão "Menos movimento" desliga o giro e as animações; o site também respeita a preferência do sistema. Sem WebGL, os textos aparecem sem o globo.
+## Como as páginas se ligam
+
+- Na página inicial, o topo tem links fixos para os diários, e o capítulo de cada país com diário tem o botão "Abrir o diário". A lista fica em `DIARIOS`, no começo do `<script>` do `index.html`.
+- Os diários voltam para o globo com `../../` e apontam um para o outro com `../<pais>/`.
+
+### Criar o diário de um país novo
+
+1. Copie a pasta `diarios/peru/` (ou `diarios/sao-tome/`) para `diarios/<slug>/`, com o mesmo `slug` usado em `COUNTRIES` no `index.html` (ex.: `colombia`).
+2. Troque as fotos em `diarios/<slug>/fotos/<slug>/` (JPG com no máximo 1600 px no lado maior, qualidade ~82) e os textos.
+3. Acrescente `"<slug>":"diarios/<slug>/"` em `DIARIOS` no `index.html`.
+
+## Modo apresentação
+
+As três páginas têm o botão **▶ Apresentar** (ou a tecla **P**). As setas avançam e voltam por paradas, como slides; **Esc** sai. As paradas de cada página ficam na função `window.AP_STOPS`, no fim do arquivo.
+
+## Regras de dados e de imagem
+
+- Antes da publicação dos artigos, só dados descritivos e anonimizados: número de entrevistas por país, município e categoria profissional, e no máximo 3 trechos curtos aprovados por país. Números e falas fictícios ficam marcados como "exemplo".
+- Fotos: o Gustavo autorizou, em 25/11/2026, publicar todas as fotos dos diários de São Tomé e do Peru. Fotos de pessoas fora da equipe (comunidade, crianças, profissionais de saúde) dependem da autorização de imagem registrada pelo projeto. Na dúvida, não suba a foto.
+- A pasta `/fotos/` na raiz fica fora do git: é o lugar para originais e fotos ainda não liberadas.
+
+## Globo de pontos
+
+O globo é desenhado em canvas 2D, sem WebGL nem bibliotecas. Pontos quadrados a cada 1,2° de latitude, frente mais clara e verso apagado, países do estudo em verde e o país do capítulo na cor dele. Com mouse, um cursor magnético vira anel ao chegar perto do globo, e dá para arrastar para girar. O botão "Menos movimento" (e a preferência do sistema) desliga o giro e as animações.
+
+Para regerar os pontos depois de mudar `data/globo.json`:
+
+```
+python3 scripts/gen_dots.py
+```

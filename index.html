@@ -162,8 +162,8 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 <header class="bar">
   <a class="brand" href="#abertura">Estudos Comparados<small>Laboratório ECoS · UnB</small></a>
   <span class="tag">Protótipo · dados fictícios</span>
-  <a class="link" href="https://claude.ai/artifact/MqXNFjqJ4S7JeQNFg65YNY" target="_blank" rel="noopener">Diário de São Tomé ↗</a>
-  <a class="link" href="https://claude.ai/artifact/2KsqbvwxQxwGgc6wRMsQJf" target="_blank" rel="noopener">Diário do Peru ↗</a>
+  <a class="link" href="diarios/sao-tome/">Diário de São Tomé</a>
+  <a class="link" href="diarios/peru/">Diário do Peru</a>
   <a class="link" href="dados.html#mapa">Dados</a>
   <a class="link" href="dados.html#publicacoes">Publicações</a>
   <button class="toggle" id="calm" aria-pressed="false" title="Desliga as animações e o giro do globo">Menos movimento</button>
@@ -175,7 +175,7 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 
 <script>
 /* ================= DADOS DE EXEMPLO (no site real: arquivo gerado das planilhas) ================= */
-const DIARIOS={"sao-tome":"https://claude.ai/artifact/MqXNFjqJ4S7JeQNFg65YNY","peru":"https://claude.ai/artifact/2KsqbvwxQxwGgc6wRMsQJf"};
+const DIARIOS={"sao-tome":"diarios/sao-tome/","peru":"diarios/peru/"};
 const CATS=["Médico(a)","Enfermeiro(a)","Técnico(a) de enfermagem","Agente comunitário(a)","Gestor(a)","Outros"];
 const CC=["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)","var(--c6)"];
 const COUNTRIES=[
@@ -260,7 +260,7 @@ COUNTRIES.forEach((c,ci)=>{
   STEPS.push({id:c.slug+"-voz",country:c.slug,view:{lon:c.lon-5,lat:c.lat+3,dist:2.4,hl:c.slug},html:`
     <span class="fict">Trecho fictício · no site real, até 3 trechos aprovados por país</span>
     <blockquote><p>${esc(c.quote)}</p><cite>${esc(c.cat)} · ${esc(c.nome)}</cite></blockquote>
-    <div class="row" style="gap:12px;flex-wrap:wrap">${DIARIOS[c.slug]?`<a class="btn" href="${DIARIOS[c.slug]}" target="_blank" rel="noopener">Abrir o diário de ${esc(c.nome)} ↗</a>`:""}<a class="btn ghost" href="dados.html#pais-${c.slug}">Ver todos os dados de ${esc(c.nome)} →</a></div>`});
+    <div class="row" style="gap:12px;flex-wrap:wrap">${DIARIOS[c.slug]?`<a class="btn" href="${DIARIOS[c.slug]}">Abrir o diário de ${esc(c.nome)} →</a>`:""}<a class="btn ghost" href="dados.html#pais-${c.slug}">Ver todos os dados de ${esc(c.nome)} →</a></div>`});
 });
 const maxT=Math.max(...COUNTRIES.map(c=>c.total));
 STEPS.push({id:"comparar",chapter:"Comparar",view:{lon:-40,lat:10,dist:3.2,arcs:true,all:true},glass:true,end:true,html:`
@@ -439,7 +439,7 @@ function makeGlobe(DOTS){
 /* Sempre começar do topo: ao abrir a página e ao clicar num link para o outro artefato (globo ou diário). */
 try{history.scrollRestoration="manual"}catch(e){}
 addEventListener("load",()=>scrollTo({top:0,behavior:"instant"}));
-document.addEventListener("click",e=>{const a=e.target.closest('a[href*="claude.ai/artifact/"]');if(a)setTimeout(()=>scrollTo({top:0,behavior:"instant"}),300)});
+document.addEventListener("click",e=>{const a=e.target.closest('a[href$="/"],a[href^="../"],a[href^="diarios/"]');if(a)setTimeout(()=>scrollTo({top:0,behavior:"instant"}),300)});
 </script>
 <script>
 window.AP_STOPS=()=>{const vh=innerHeight;return [0,...[...document.querySelectorAll(".step")].map(s=>s.getBoundingClientRect().top+scrollY+s.offsetHeight/2-vh/2)]};
