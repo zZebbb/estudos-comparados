@@ -303,7 +303,8 @@ window.AP_STOPS=()=>{const vh=innerHeight,top=el=>el.getBoundingClientRect().top
 .ap-hud button{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer}
 .ap-hud button:hover{background:rgba(255,255,255,.25)}
 .ap-hud span{min-width:64px;text-align:center}
-@media (max-width:640px){.ap-btn{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+/* no celular o botão fica na mesma linha da barra de navegação, à direita */
+@media (max-width:640px){.ap-btn{padding:9px 12px;font-size:12px}}
 </style>
 
 <!-- Navegação fixa entre as três páginas (globo e diários). Para um diário novo, acrescente um link aqui nas três páginas. -->

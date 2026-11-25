@@ -140,7 +140,7 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 
 @media (max-width:760px){
   .chapters{display:none}
-  .step{align-items:flex-end;padding-bottom:48px}
+  .step{align-items:flex-end;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   .card.glass{padding:20px}
   .card{margin-left:0}
   .bar a.link{display:none}
@@ -165,8 +165,6 @@ footer{position:relative;z-index:10;border-top:1px solid var(--line);color:var(-
 <header class="bar">
   <a class="brand" href="#abertura">Estudos Comparados<small>Laboratório ECoS · UnB</small></a>
   <span class="tag">Protótipo · dados fictícios</span>
-  <a class="link" href="diarios/sao-tome/">Diário de São Tomé</a>
-  <a class="link" href="diarios/peru/">Diário do Peru</a>
   <a class="link" href="dados.html#mapa">Dados</a>
   <a class="link" href="dados.html#publicacoes">Publicações</a>
   <button class="toggle" id="calm" aria-pressed="false" title="Desliga as animações e o giro do globo">Menos movimento</button>
@@ -377,8 +375,8 @@ function makeGlobe(DOTS){
     if(!drag){dx+=vx;vx*=.92;dx*=.96;dy*=.96}
     const lon=st.lon-spinOff-dx,lat=Math.max(-70,Math.min(70,st.lat+dy));
     lam0=lon*D2R;phi0=lat*D2R;cp0=Math.cos(phi0);sp0=Math.sin(phi0);
-    const z=st.dist*mob(),unit=(H/2)/(.364*z);
-    view.R=(H/2)/.364/Math.sqrt(Math.max(.05,z*z-1));
+    const He=Math.min(H,W*1.25),z=st.dist*mob(),unit=(He/2)/(.364*z);
+    view.R=(He/2)/.364/Math.sqrt(Math.max(.05,z*z-1));
     view.cx=W/2+shift()*Math.max(.15,(st.dist-1)/2.4)*unit;
     view.cy=H/2-(innerWidth<760?.42*(st.dist/2.4):0)*unit;
     const R=view.R,cx=view.cx,cy=view.cy;
@@ -441,7 +439,8 @@ window.AP_STOPS=()=>{const vh=innerHeight;return [0,...[...document.querySelecto
 .ap-hud button{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer}
 .ap-hud button:hover{background:rgba(255,255,255,.25)}
 .ap-hud span{min-width:64px;text-align:center}
-@media (max-width:640px){.ap-btn{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+/* no celular o botão fica na mesma linha da barra de navegação, à direita */
+@media (max-width:640px){.ap-btn{padding:9px 12px;font-size:12px}}
 </style>
 
 <!-- Navegação fixa entre as três páginas (globo e diários). Para um diário novo, acrescente um link aqui nas três páginas. -->
