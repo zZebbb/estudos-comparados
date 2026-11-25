@@ -51,6 +51,13 @@ Atenção: o site no Pages é público e pode ser indexado por buscadores, mesmo
 2. Troque as fotos em `diarios/<slug>/fotos/<slug>/` (JPG com no máximo 1600 px no lado maior, qualidade ~82) e os textos.
 3. Acrescente `"<slug>":"diarios/<slug>/"` em `DIARIOS` no `index.html` e o link na barra `sitenav` das três páginas.
 
+## Celular e tablet
+
+Testado em celular (390×844), tablet em pé (800×1280) e iPad (1024×1366). Pontos de atenção ao mexer no layout:
+- `<figure>` tem margem padrão do navegador; zere (`margin:0`) em qualquer grade de fotos, senão elas ficam estreitas e desalinhadas.
+- Em tela em pé, o globo principal usa a largura para calcular o tamanho (`He` em `frame()`), para não virar um zoom gigante.
+- Os cartões e textos ficam acima das barras fixas de baixo (navegação e Apresentar).
+
 ## Modo apresentação
 
 As três páginas têm o botão **▶ Apresentar** (ou a tecla **P**). As setas avançam e voltam por paradas, como slides; **Esc** sai. As paradas de cada página ficam na função `window.AP_STOPS`, no fim do arquivo.
